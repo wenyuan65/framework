@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.wy.panda.mvc.annotation.HttpCommand;
-import com.wy.panda.mvc.common.ProtocolType;
 import org.apache.commons.lang3.StringUtils;
 
 import com.wy.panda.common.ScanUtil;
@@ -38,10 +36,8 @@ public class DispatchServlet {
 	private ServletContext servletContext;
 	
 	/** 命令存储 */
-	private Map<Integer, Invoker> actionMap = new HashMap<>();
-	/** 命令存储 */
-	private Map<String, Invoker> httpActionMap = new HashMap<>();
-
+	private Map<String, Invoker> actionMap = new HashMap<>();
+	
 	/** 默认的返回 */
 	private ByteResult defaultResult = new ByteResult(null);
 	
@@ -118,13 +114,13 @@ public class DispatchServlet {
 				continue;
 			}
 			
-			Integer commandId = command.value();
-			if (commandId == 0) {
+			String commandName = command.value();
+			if (StringUtils.isBlank(commandName)) {
 				String msg = String.format("command cannot be blank for %s.%s()", clazz.getName(), method.getName());
 				throw new IllegalParametersException(msg);
 			}
-			if (actionMap.containsKey(commandId)) {
-				String msg = String.format("command cannot be dumplicated for %s in %s.%s()", commandId, clazz.getName(), method.getName());
+			if (actionMap.containsKey(commandName)) {
+				String msg = String.format("command cannot be dumplicated for %s in %s.%s()", commandName, clazz.getName(), method.getName());
 				throw new IllegalParametersException(msg);
 			}
 			
@@ -135,29 +131,9 @@ public class DispatchServlet {
 			
 			Invoker invoker = new Invoker(obj, method);
 			invoker.init();
-			actionMap.put(commandId, invoker);
+			actionMap.put(commandName, invoker);
 			
-			log.info("init command:{}, handler:{}#{}", commandId, clazz.getSimpleName(), method.getName());
-
-			// http
-			HttpCommand httpCommand = method.getAnnotation(HttpCommand.class);
-			if(httpCommand == null){
-				continue;
-			}
-
-			String commandName = httpCommand.value();
-			if (StringUtils.isBlank(commandName)) {
-				String msg = String.format("command cannot be blank for %s.%s()", clazz.getName(), method.getName());
-				throw new IllegalParametersException(msg);
-			}
-			if (httpActionMap.containsKey(commandName)) {
-				String msg = String.format("command cannot be dumplicated for %s in %s.%s()", commandName, clazz.getName(), method.getName());
-				throw new IllegalParametersException(msg);
-			}
-
-			invoker = new Invoker(obj, method);
-			invoker.init();
-			httpActionMap.put(commandName, invoker);
+			log.info("init command:{}, handler:{}#{}", commandName, clazz.getSimpleName(), method.getName());
 		}
 	}
 	
@@ -183,27 +159,21 @@ public class DispatchServlet {
 	 */
 	public void dispatch(Request request, Response response) {
 		Result result = null;
-		Invoker invoker = null;
-		if (request.getProtocol() == ProtocolType.TCP) {
-			invoker = actionMap.get(request.getCommand());
-		} else {
-			invoker = httpActionMap.get(request.getHttpCommand());
-		}
-
+		Invoker invoker = actionMap.get(request.getCommand());
 		if (invoker != null) {
 			// 设置调用系统环境，让command执行过程中，可以获得applicationContext
 			request.setServletContext(this.servletContext);
 			// 执行command
 			result = invoke(invoker, request, response);
 		} else {
-			result = new NoActionResult(String.valueOf(request.getCommand()));
+			result = new NoActionResult(request.getCommand());
 		}
 		
 		// 结果处理
 		if (result != null) {
 			result.render(request, response);
 		} else {
-			result = new NoActionResult(String.valueOf(request.getCommand()));
+			result = new NoActionResult(request.getCommand());
 		}
 	}
 	

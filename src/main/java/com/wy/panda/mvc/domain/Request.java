@@ -10,12 +10,10 @@ public class Request {
 	/** 请求Id */
 	private int requestId;
 	/** 请求命令 */
-	private int command;
-	/** http请求命令 */
-	private String httpCommand;
+	private String command;
 	/** playerId */
 	private int playerId;
-	/** 请求内容 */
+	/** 请求参数 */
 	private byte[] contents;
 	/** 参数列表 */
 	private Map<String, String> paramMap;
@@ -68,20 +66,12 @@ public class Request {
 		this.requestId = requestId;
 	}
 
-	public int getCommand() {
+	public String getCommand() {
 		return command;
 	}
 
-	public void setCommand(int command) {
+	public void setCommand(String command) {
 		this.command = command;
-	}
-
-	public String getHttpCommand() {
-		return httpCommand;
-	}
-
-	public void setHttpCommand(String httpCommand) {
-		this.httpCommand = httpCommand;
 	}
 
 	public int getPlayerId() {

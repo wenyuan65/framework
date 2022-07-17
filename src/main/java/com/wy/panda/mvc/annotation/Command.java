@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Documented
 public @interface Command {
-	public int value();
+	public String value();
 }

@@ -55,14 +55,11 @@ public class PandaTcpRequestDecoder extends MessageToMessageDecoder<PackMessage>
 		request.setProtocol(ProtocolType.TCP);
 		
 		// command
-//		ByteBuf commandBuf = Unpooled.buffer(NettyConstants.PACKAGE_COMMAND_LENGTH);
-//		packBuf.readBytes(commandBuf);
-//		String command = TextUtil.toString(commandBuf.array()).trim();
-//		request.setCommand(command);
-//		commandBuf.release();
-
-		request.setCommand(packBuf.readInt());
-
+		ByteBuf commandBuf = Unpooled.buffer(NettyConstants.PACKAGE_COMMAND_LENGTH);
+		packBuf.readBytes(commandBuf);
+		String command = TextUtil.toString(commandBuf.array()).trim();
+		request.setCommand(command);
+		commandBuf.release();
 		// data
 		ByteBuf dataBuf = Unpooled.buffer(msg.getLength() - 37);
 		packBuf.readBytes(dataBuf);

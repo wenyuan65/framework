@@ -1,0 +1,16 @@
+backend/
+logs/
+.log
+
+target/
+*.jar
+*.war
+*.class
+
+.classpath
+.project
+
+*.iml
+.settings/
+.idea/
+

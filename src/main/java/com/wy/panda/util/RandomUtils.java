@@ -47,10 +47,6 @@ public class RandomUtils {
 	public static int nextInt(int n, int m) {
 		return getInstance().nextInt(n, m);
 	}
-
-	public static int nextIntInclude(int n, int m) {
-		return getInstance().nextInt(n, m + 1);
-	}
 	
 	public static long nextLong() {
 		return getInstance().nextLong();

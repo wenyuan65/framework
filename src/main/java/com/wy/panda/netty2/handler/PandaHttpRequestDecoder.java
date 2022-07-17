@@ -75,8 +75,7 @@ public class PandaHttpRequestDecoder extends ChannelInboundHandlerAdapter {
 			}
 			
 			Request request = new Request();
-//			request.setCommand(command);
-			request.setHttpCommand(command);
+			request.setCommand(command);
 			InetSocketAddress clientAddress = (InetSocketAddress)ctx.channel().remoteAddress();
 			request.setIp(clientAddress.getHostString());
 			request.setRequestId(Integer.MAX_VALUE);
