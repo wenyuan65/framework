@@ -2,3 +2,12 @@
 ./backend/*
 ./logs/*
 *.log
+
+target/*
+
+.classpath
+.project
+
+framework.iml
+.settings
+.idea
