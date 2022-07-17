@@ -1,2 +1,0 @@
-2020-05-23 17:55:02.873 [nioEventLoopGroup-3-1][dayreport:149][INFO] - TestAction#getTestInfo#param1:123,param2:1234#127.0.0.1
-2020-05-23 17:55:38.823 [nioEventLoopGroup-3-3][dayreport:149][INFO] - TestAction#getTestInfo#[param1:123,param2:1234]#127.0.0.1

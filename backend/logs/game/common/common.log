@@ -1,8 +1,0 @@
-2020-05-26 21:58:51.544 [main][o.s.j.d.DriverManagerDataSource:133][INFO] Loaded JDBC driver: com.mysql.jdbc.Driver
-2020-05-26 21:58:53.239 [nioEventLoopGroup-2-1][c.w.p.n.NettyServer:95][INFO] http bind on port 10000 success
-2020-05-26 21:58:53.241 [nioEventLoopGroup-4-1][c.w.p.n.NettyServer:95][INFO] tcp bind on port 10001 success
-2020-05-26 21:59:49.671 [main][o.s.c.s.ClassPathXmlApplicationContext:590][INFO] Refreshing org.springframework.context.support.ClassPathXmlApplicationContext@5dd6264: startup date [Tue May 26 21:59:49 CST 2020]; root of context hierarchy
-2020-05-26 21:59:49.777 [main][o.s.b.f.x.XmlBeanDefinitionReader:316][INFO] Loading XML bean definitions from class path resource [applicationContext.xml]
-2020-05-26 21:59:50.720 [main][o.s.j.d.DriverManagerDataSource:133][INFO] Loaded JDBC driver: com.mysql.jdbc.Driver
-2020-05-26 21:59:52.325 [nioEventLoopGroup-2-1][c.wy.panda.netty2.NettyServer:95][INFO] http bind on port 10000 success
-2020-05-26 21:59:52.333 [nioEventLoopGroup-4-1][c.wy.panda.netty2.NettyServer:95][INFO] tcp bind on port 10001 success
