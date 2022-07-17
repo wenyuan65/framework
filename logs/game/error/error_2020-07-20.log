@@ -1,0 +1,144 @@
+2020-07-20 22:01:47.961 [DefaultQuartzScheduler_QuartzSchedulerThread][org.quartz.core.ErrorLogger:2407][ERROR] An error occured instantiating job to be executed. job= 'group1.jobName1'
+org.quartz.SchedulerException: Problem instantiating class 'com.wy.panda.schedule.HelloJob'
+	at org.quartz.simpl.SimpleJobFactory.newJob(SimpleJobFactory.java:58)
+	at org.quartz.simpl.PropertySettingJobFactory.newJob(PropertySettingJobFactory.java:69)
+	at org.quartz.core.JobRunShell.initialize(JobRunShell.java:127)
+	at org.quartz.core.QuartzSchedulerThread.run(QuartzSchedulerThread.java:392)
+Caused by: java.lang.IllegalAccessException: Class org.quartz.simpl.SimpleJobFactory can not access a member of class com.wy.panda.schedule.HelloJob with modifiers ""
+	at sun.reflect.Reflection.ensureMemberAccess(Reflection.java:102)
+	at java.lang.Class.newInstance(Class.java:436)
+	at org.quartz.simpl.SimpleJobFactory.newJob(SimpleJobFactory.java:56)
+	... 3 common frames omitted
+2020-07-20 22:07:40.164 [DefaultQuartzScheduler_Worker-1][org.quartz.core.JobRunShell:211][ERROR] Job group1.jobName1 threw an unhandled Exception: 
+java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+2020-07-20 22:07:40.170 [DefaultQuartzScheduler_Worker-1][org.quartz.core.ErrorLogger:2407][ERROR] Job (group1.jobName1 threw an exception.
+org.quartz.SchedulerException: Job threw an unhandled exception.
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:213)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+Caused by: java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	... 1 common frames omitted
+2020-07-20 22:07:41.131 [DefaultQuartzScheduler_Worker-2][org.quartz.core.JobRunShell:211][ERROR] Job group1.jobName1 threw an unhandled Exception: 
+java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+2020-07-20 22:07:41.131 [DefaultQuartzScheduler_Worker-2][org.quartz.core.ErrorLogger:2407][ERROR] Job (group1.jobName1 threw an exception.
+org.quartz.SchedulerException: Job threw an unhandled exception.
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:213)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+Caused by: java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	... 1 common frames omitted
+2020-07-20 22:07:42.139 [DefaultQuartzScheduler_Worker-3][org.quartz.core.JobRunShell:211][ERROR] Job group1.jobName1 threw an unhandled Exception: 
+java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+2020-07-20 22:07:42.140 [DefaultQuartzScheduler_Worker-3][org.quartz.core.ErrorLogger:2407][ERROR] Job (group1.jobName1 threw an exception.
+org.quartz.SchedulerException: Job threw an unhandled exception.
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:213)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+Caused by: java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	... 1 common frames omitted
+2020-07-20 22:07:43.135 [DefaultQuartzScheduler_Worker-4][org.quartz.core.JobRunShell:211][ERROR] Job group1.jobName1 threw an unhandled Exception: 
+java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+2020-07-20 22:07:43.136 [DefaultQuartzScheduler_Worker-4][org.quartz.core.ErrorLogger:2407][ERROR] Job (group1.jobName1 threw an exception.
+org.quartz.SchedulerException: Job threw an unhandled exception.
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:213)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+Caused by: java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	... 1 common frames omitted
+2020-07-20 22:07:44.130 [DefaultQuartzScheduler_Worker-5][org.quartz.core.JobRunShell:211][ERROR] Job group1.jobName1 threw an unhandled Exception: 
+java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+2020-07-20 22:07:44.131 [DefaultQuartzScheduler_Worker-5][org.quartz.core.ErrorLogger:2407][ERROR] Job (group1.jobName1 threw an exception.
+org.quartz.SchedulerException: Job threw an unhandled exception.
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:213)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+Caused by: java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	... 1 common frames omitted
+2020-07-20 22:07:45.138 [DefaultQuartzScheduler_Worker-6][org.quartz.core.JobRunShell:211][ERROR] Job group1.jobName1 threw an unhandled Exception: 
+java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+2020-07-20 22:07:45.149 [DefaultQuartzScheduler_Worker-6][org.quartz.core.ErrorLogger:2407][ERROR] Job (group1.jobName1 threw an exception.
+org.quartz.SchedulerException: Job threw an unhandled exception.
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:213)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+Caused by: java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	... 1 common frames omitted
+2020-07-20 22:07:46.129 [DefaultQuartzScheduler_Worker-7][org.quartz.core.JobRunShell:211][ERROR] Job group1.jobName1 threw an unhandled Exception: 
+java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+2020-07-20 22:07:46.130 [DefaultQuartzScheduler_Worker-7][org.quartz.core.ErrorLogger:2407][ERROR] Job (group1.jobName1 threw an exception.
+org.quartz.SchedulerException: Job threw an unhandled exception.
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:213)
+	at org.quartz.simpl.SimpleThreadPool$WorkerThread.run(SimpleThreadPool.java:573)
+Caused by: java.util.MissingFormatArgumentException: Format specifier '%s'
+	at java.util.Formatter.format(Formatter.java:2519)
+	at java.io.PrintStream.format(PrintStream.java:970)
+	at java.io.PrintStream.printf(PrintStream.java:871)
+	at com.wy.panda.schedule.HelloJob.execute(HelloJob.java:16)
+	at org.quartz.core.JobRunShell.run(JobRunShell.java:202)
+	... 1 common frames omitted

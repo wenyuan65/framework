@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<xsd:schema xmlns="http://www.framework.com/schema/netty"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	targetNamespace="http://www.framework.com/schema/netty"
+	elementFormDefault="qualified"
+	attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" 
+		schemaLocation="http://www.springframework.org/schema/beans/spring-beans-4.1.xsd" />
+
+	<xsd:element name="bootstrap">
+		<xsd:complexType>
+			<xsd:all>
+				<xsd:element ref="channel-class" minOccurs="1" maxOccurs="1" />
+				<xsd:element name="options" type="option0" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="child-options" type="option0" minOccurs="0" maxOccurs="1" />
+				<xsd:element ref="port" minOccurs="1" maxOccurs="1" />
+				<xsd:element ref="child-handlers" minOccurs="1" maxOccurs="1" />
+			</xsd:all>
+
+			<xsd:attribute name="id" type="xsd:string" use="required" />
+			<xsd:attribute name="boss-eventLoop" type="xsd:integer" use="required" />
+			<xsd:attribute name="worker-eventLoop" type="xsd:integer" use="required" />
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="channel-class">
+		<xsd:complexType>
+			<xsd:attribute name="class" type="xsd:string" />
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="option0">
+		<xsd:sequence>
+			<!-- <xsd:element ref="option" minOccurs="0" maxOccurs="unbounded" /> -->
+			<xsd:element name="option" minOccurs="0"
+				maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:attribute name="name" type="xsd:string" use="required" />
+					<xsd:attribute name="type" type="xsd:string" use="required" />
+					<xsd:attribute name="value" type="xsd:string" use="required" />
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="port">
+		<xsd:complexType>
+			<xsd:attribute name="bind">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:integer">
+						<xsd:minInclusive value="1024" />
+						<xsd:maxInclusive value="65535" />
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="child-handlers">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="child-handler" minOccurs="1" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:attribute name="ref" type="xsd:string" use="required" />
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

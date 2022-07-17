@@ -1,0 +1,3 @@
+2020-07-20 22:28:50.670 [main][o.quartz.core.QuartzScheduler:666][INFO] Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED shutting down.
+2020-07-20 22:28:50.680 [main][o.quartz.core.QuartzScheduler:585][INFO] Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED paused.
+2020-07-20 22:28:50.688 [main][o.quartz.core.QuartzScheduler:740][INFO] Scheduler DefaultQuartzScheduler_$_NON_CLUSTERED shutdown complete.

@@ -1,0 +1,66 @@
+2019-08-11 01:23:49.346 [main][com.wy.panda.log.LogTest][ERROR] div error
+java.lang.ArithmeticException: / by zero
+	at com.wy.panda.log.LogTest.main(LogTest.java:30)
+2019-08-11 01:23:49.360 [main][com.wy.panda.log.LogTest][ERROR] div error
+java.lang.ArithmeticException: / by zero
+	at com.wy.panda.log.LogTest.main(LogTest.java:30)
+2019-08-11 01:23:49.360 [main][com.wy.panda.log.LogTest][ERROR] div error
+java.lang.ArithmeticException: / by zero
+	at com.wy.panda.log.LogTest.main(LogTest.java:30)
+2019-08-11 01:23:49.361 [main][com.wy.panda.log.LogTest][ERROR] div error
+java.lang.ArithmeticException: / by zero
+	at com.wy.panda.log.LogTest.main(LogTest.java:30)
+2019-08-11 01:23:49.361 [main][com.wy.panda.log.LogTest][ERROR] div error
+java.lang.ArithmeticException: / by zero
+	at com.wy.panda.log.LogTest.main(LogTest.java:30)
+2019-08-11 01:23:49.361 [main][com.wy.panda.log.LogTest][ERROR] div error
+java.lang.ArithmeticException: / by zero
+	at com.wy.panda.log.LogTest.main(LogTest.java:30)
+2019-08-11 01:23:49.362 [main][com.wy.panda.log.LogTest][ERROR] div error
+java.lang.ArithmeticException: / by zero
+	at com.wy.panda.log.LogTest.main(LogTest.java:30)
+2019-08-11 01:23:49.362 [main][com.wy.panda.log.LogTest][ERROR] div error
+java.lang.ArithmeticException: / by zero
+	at com.wy.panda.log.LogTest.main(LogTest.java:30)
+2019-08-11 01:23:49.363 [main][com.wy.panda.log.LogTest][ERROR] div error
+java.lang.ArithmeticException: / by zero
+	at com.wy.panda.log.LogTest.main(LogTest.java:30)
+2019-08-11 01:23:49.363 [main][com.wy.panda.log.LogTest][ERROR] div error
+java.lang.ArithmeticException: / by zero
+	at com.wy.panda.log.LogTest.main(LogTest.java:30)
+2019-08-11 01:27:50.237 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error  at com.wy.panda.log.LogTest2.main(LogTest2.java:10)\
+2019-08-11 01:27:50.242 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error  at com.wy.panda.log.LogTest2.main(LogTest2.java:10)\
+2019-08-11 01:27:50.242 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error  at com.wy.panda.log.LogTest2.main(LogTest2.java:10)\
+2019-08-11 01:27:50.242 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:27:50.243 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:27:50.243 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:27:50.243 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:27:50.243 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:27:50.243 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:27:50.244 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:31:32.415 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error  at com.wy.panda.log.LogTest2.main(LogTest2.java:10)
+
+2019-08-11 01:31:32.421 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error  at com.wy.panda.log.LogTest2.main(LogTest2.java:10)
+
+2019-08-11 01:31:32.421 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error  at com.wy.panda.log.LogTest2.main(LogTest2.java:10)
+
+2019-08-11 01:31:32.421 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:31:32.421 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:31:32.422 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:31:32.422 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:31:32.422 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:31:32.423 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:31:32.423 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:32:24.925 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+  at com.wy.panda.log.LogTest2.main(LogTest2.java:10)
+2019-08-11 01:32:24.930 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+  at com.wy.panda.log.LogTest2.main(LogTest2.java:10)
+2019-08-11 01:32:24.931 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+  at com.wy.panda.log.LogTest2.main(LogTest2.java:10)
+2019-08-11 01:32:24.931 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:32:24.931 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:32:24.932 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:32:24.932 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:32:24.932 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:32:24.933 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error
+2019-08-11 01:32:24.933 [main][com.wy.panda.log.LogTest2][ERROR] java.lang.ArithmeticException: / by zero:div error

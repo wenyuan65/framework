@@ -1,0 +1,4 @@
+# Tooling related information for the netty namespace
+http\://www.framework.com/schema/netty@name=netty Namespace
+http\://www.framework.com/schema/netty@prefix=netty
+http\://www.framework.com/schema/netty@icon=org/springframework/transaction/config/spring-tx.gif

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" scanPeriod="30 seconds" debug="false">
+
+	<property name="LOG_HOME" value="./logs/game" />
+	<property name="console" value="${LOG_HOME}/start.out" />
+	<property name="asyncdb" value="${LOG_HOME}/asyncdb/asyncdb_%d{yyyy-MM-dd}.log" />
+	<property name="common" value="${LOG_HOME}/common/common" />
+	<property name="dayreport" value="${LOG_HOME}/dayreport/dayreport_%d{yyyy-MM-dd}.log" />
+	<property name="error" value="${LOG_HOME}/error/error_%d{yyyy-MM-dd}.log" />
+	<property name="rtreport" value="${LOG_HOME}/rtreport/rtreport_%d{yyyy-MM-dd}.log" />
+	<property name="opreport" value="${LOG_HOME}/opreport/opreport_%d{yyyy-MM-dd}.log" />
+	
+	<!-- 定义日志格式，全局统一  -->
+	<property name="pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t][%logger{30}:%L][%level] %m%n"/>
+	<property name="charSet" value="UTF-8" />
+	
+	<appender name="common" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${common}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${common}.log.%i</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>3</maxIndex>
+        </rollingPolicy>
+        
+		<triggeringPolicy  class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        	<maxFileSize>1KB</maxFileSize>
+        </triggeringPolicy>
+		<encoder>
+			<pattern>${pattern}</pattern>
+			<charset>${charSet}</charset>
+		</encoder>
+		
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+	</appender>
+	
+	<appender name="asyncdb" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${asyncdb}</FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+		<encoder>
+			<pattern>${pattern}</pattern>
+			<charset>${charSet}</charset>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+	</appender>
+	
+	<appender name="dayreport" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${dayreport}</FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+		<encoder>
+			<pattern>${pattern}</pattern>
+			<charset>${charSet}</charset>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+	</appender>
+	
+	<appender name="error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${error}</FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+		<encoder>
+			<pattern>${pattern}</pattern>
+			<charset>${charSet}</charset>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+	</appender>
+	
+	<appender name="rtreport" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${rtreport}</FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+		<encoder>
+			<pattern>${pattern}</pattern>
+			<charset>${charSet}</charset>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+	</appender>
+	
+	<appender name="opreport" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <FileNamePattern>${opreport}</FileNamePattern>
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+		<encoder>
+			<pattern>${pattern}</pattern>
+			<charset>${charSet}</charset>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+	</appender>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+	    <target>System.out</target>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>${pattern}</pattern>
+			<charset>${charSet}</charset>
+		</layout>
+	</appender>
+	
+	<logger name="asyncdb" level="error" additivity="false">
+		<appender-ref ref="error" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="dayreport" level="error" additivity="false">
+		<appender-ref ref="error" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="rtreport" level="error" additivity="false">
+		<appender-ref ref="error" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="opreport" level="error" additivity="false">
+		<appender-ref ref="error" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	
+	<logger name="asyncdb" level="info" additivity="false">
+		<appender-ref ref="asyncdb" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="dayreport" level="info" additivity="false">
+		<appender-ref ref="dayreport" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="rtreport" level="info" additivity="false">
+		<appender-ref ref="rtreport" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="opreport" level="info" additivity="false">
+		<appender-ref ref="opreport" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<root level="error">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="error" />
+	</root>
+	<root level="info">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="common" />
+	</root>
+
+</configuration>
