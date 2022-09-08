@@ -1,4 +1,4 @@
-package com.wy.panda.jdbc.memory.enhance;
+package com.wy.panda.jdbc.entity.memory.enhance;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,7 +8,7 @@ import com.wy.panda.bootstrap.PandaClassLoader;
 import com.wy.panda.common.ReflactUtil;
 import com.wy.panda.common.SystemProperty;
 import com.wy.panda.jdbc.entity.TableEntity;
-import com.wy.panda.jdbc.memory.dynamic.DynamicUpdate;
+import com.wy.panda.jdbc.entity.memory.dynamic.DynamicUpdate;
 
 import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.Label;
@@ -74,21 +74,7 @@ public class EnhanceUtil {
 		String methodSigned = String.format("(L%s;L%s;L%s;)%s", superClassPathName, superClassPathName, 
 				tableEntityPathName, "Ljava/lang/String;");
 		MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "getDynamicUpdateSQL", methodSigned, null, null);
-//		mv.visitLocalVariable(name, desc, signature, start, end, index);
-//        Start  Length  Slot  Name   Signature
-//        0     376     0  this   Lcom/wy/panda/wmy/proxy/ServerList$EnhanceByPanda;
-//        0     376     1 oldObj   Lcom/wy/panda/wmy/proxy/server/domain/ServerList;
-//        0     376     2 newObj   Lcom/wy/panda/wmy/proxy/server/domain/ServerList;
-//        0     376     3 tableEntity   Lcom/wy/panda/jdbc/entity/TableEntity;
-//       11     365     4    sb   Ljava/lang/StringBuilder;
-//       34     342     5 isFirst   Z
-//       37     339     6 oldValue   Ljava/lang/Object;
-//       40     336     7 newValue   Ljava/lang/Object;
-//       44     332     8 columnName   Ljava/lang/String;
-//      341      35     9   id2   I
-//      347      29    10 keyColoumnName   Ljava/lang/String;
-		
-		
+
 		mv.visitCode();
 		mv.visitTypeInsn(Opcodes.NEW, "java/lang/StringBuilder");
 		mv.visitInsn(Opcodes.DUP);

@@ -10,11 +10,7 @@ import com.wy.panda.log.LoggerFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -47,22 +43,12 @@ public class NettyClient {
 	}
 	
 	public void init() {
-		group = config.isEpoll() ? new EpollEventLoopGroup(config.getEventGroupNum()) 
-				: new NioEventLoopGroup(config.getEventGroupNum()); 
+		group = config.isEpoll() ? new EpollEventLoopGroup(config.getEventGroupNum())  : new NioEventLoopGroup(config.getEventGroupNum());
 		bootstrap.group(group);
 		bootstrap.channel(config.isEpoll() ? EpollSocketChannel.class: NioSocketChannel.class);
-		bootstrap.option(ChannelOption.ALLOCATOR, config.isUsePool() ? PooledByteBufAllocator.DEFAULT 
-				: UnpooledByteBufAllocator.DEFAULT);
-		
-		Map<String, Object> options = config.getOptions();
-		if (options != null) {
-			for (Entry<String, Object> entry : options.entrySet()) {
-				String key = entry.getKey();
-				Object value = entry.getValue();
-				bootstrap.option(ChannelOption.valueOf(key), value);
-			}
-		}
-		
+		bootstrap.option(ChannelOption.ALLOCATOR, config.isUsePool() ? PooledByteBufAllocator.DEFAULT  : UnpooledByteBufAllocator.DEFAULT);
+		bootstrap.option(ChannelOption.TCP_NODELAY, true);
+
 		bootstrap.handler(initializer);
 	}
 	

@@ -4,17 +4,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
+import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -53,35 +49,17 @@ public class NettyServer {
 	
 	public void init() throws Exception {
 		// EventLoop
-		bossGroup = config.isEpoll() ? new EpollEventLoopGroup(config.getBossEventLoopNum()) 
-				: new NioEventLoopGroup(config.getBossEventLoopNum());
-		workerGroup = config.isEpoll() ? new EpollEventLoopGroup(config.getWorkerEventLoopNum()) 
-				: new NioEventLoopGroup(config.getWorkerEventLoopNum());
+		bossGroup = config.isEpoll() ? new EpollEventLoopGroup(config.getBossEventLoopNum()) : new NioEventLoopGroup(config.getBossEventLoopNum());
+		workerGroup = config.isEpoll() ? new EpollEventLoopGroup(config.getWorkerEventLoopNum()) : new NioEventLoopGroup(config.getWorkerEventLoopNum());
 		bootstrap.group(bossGroup, workerGroup);
 		bootstrap.channel(config.isEpoll() ? EpollServerSocketChannel.class : NioServerSocketChannel.class);
-		bootstrap.option(ChannelOption.ALLOCATOR, config.isUsedPooled() ? PooledByteBufAllocator.DEFAULT 
-				: UnpooledByteBufAllocator.DEFAULT);
-		
-		Map<String, Object> options = config.getOptions();
-		Map<String, Object> childOptions = config.getChildOptions();
-		if (options != null) {
-			for (Entry<String, Object> entry : options.entrySet()) {
-				String key = entry.getKey();
-				Object value = entry.getValue();
-				bootstrap.option(ChannelOption.valueOf(key), value);
-			}
-		}
-		if (childOptions != null) {
-			for (Entry<String, Object> entry : childOptions.entrySet()) {
-				String key = entry.getKey();
-				Object value = entry.getValue();
-				bootstrap.childOption(ChannelOption.valueOf(key), value);
-			}
-		}
-		
+
+		bootstrap.option(ChannelOption.ALLOCATOR, config.isUsedPooled() ? PooledByteBufAllocator.DEFAULT : UnpooledByteBufAllocator.DEFAULT);
 		bootstrap.option(ChannelOption.TCP_NODELAY, true);
+		bootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, WriteBufferWaterMark.DEFAULT);
+		bootstrap.childOption(ChannelOption.SO_BACKLOG, 1024);
 		bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
-		
+
 		bootstrap.childHandler(initializer);
 	}
 	

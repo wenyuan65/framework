@@ -1,11 +1,20 @@
 package com.wy.panda.common;
 
-import java.sql.Types;
-import java.util.HashMap;
-import java.util.Map;
+import com.wy.panda.jdbc.TableFactory;
+import com.wy.panda.jdbc.dao.PreparedStatementHandler;
+import com.wy.panda.jdbc.entity.FieldEntity;
+import com.wy.panda.log.Logger;
+import com.wy.panda.log.LoggerFactory;
+
+import javax.sql.DataSource;
+import java.sql.*;
+import java.util.*;
 import java.util.Map.Entry;
 
 public class JdbcUtils {
+
+	private static Logger log = LoggerFactory.getLogger(JdbcUtils.class);
+	private static final Logger asyncLogger = LoggerFactory.getLogger("async");
 	
 	private static Map<String, Integer> typeMap = new HashMap<>();
 	private static Map<Integer, String> propertyAndFieldTypeMap = new HashMap<>();
@@ -40,45 +49,90 @@ public class JdbcUtils {
 		}
 		return Types.NULL;
 	}
-	
-//	public static boolean isNumeric(int sqlType) {
-//		return (Types.BIT == sqlType || Types.BIGINT == sqlType || Types.DECIMAL == sqlType ||
-//				Types.DOUBLE == sqlType || Types.FLOAT == sqlType || Types.INTEGER == sqlType ||
-//				Types.NUMERIC == sqlType || Types.REAL == sqlType || Types.SMALLINT == sqlType ||
-//				Types.TINYINT == sqlType);
-//	}
-//	
-//	public static boolean isLong(int sqlType) {
-//		return Types.BIGINT == sqlType;
-//	}
-//	
-//	public static boolean isFloat(int sqlType) {
-//		return Types.FLOAT == sqlType;
-//	} 
-//	
-//	public static boolean isDicimal(int sqlType) {
-//		return Types.DECIMAL == sqlType;
-//	}  
-//	
-//	public static boolean isBoolean(int sqlType) {
-//		return Types.BIT == sqlType;
-//	}
-//	
-//	public static boolean isByte(int sqlType) {
-//		return Types.BLOB == sqlType;
-//	}
-//	
-//	public static boolean isBlob(int sqlType) {
-//		return Types.BLOB == sqlType;
-//	}
-//	
-//	public static boolean isInteger(int sqlType) {
-//		return Types.INTEGER == sqlType || Types.TINYINT == sqlType || Types.SMALLINT == sqlType;
-//	}
-//	
-//	public static boolean isString(int sqlType) {
-//		return (Types.VARCHAR == sqlType || Types.NVARCHAR == sqlType || Types.LONGVARCHAR == sqlType ||
-//				Types.LONGNVARCHAR == sqlType);
-//	}
+
+	public static List<Map<String, Object>> queryListMap(DataSource dataSource, String sql) {
+		return JdbcUtils.execute(dataSource, sql, ps -> {
+			ResultSet rs = ps.executeQuery();
+			List<Map<String, Object>> result = new ArrayList<>();
+			try {
+				ResultSetMetaData metaData = rs.getMetaData();
+				int size = metaData.getColumnCount();
+				while (rs.next()) {
+					Map<String, Object> columnMap = new HashMap<>();
+					for (int i = 1; i <= size; i++) {
+						String columnName = metaData.getColumnName(i);
+						Object value = rs.getObject(i);
+
+						columnMap.put(columnName, value);
+					}
+					result.add(columnMap);
+				}
+			} finally {
+				JdbcUtils.close(rs);
+			}
+			return result != null ? result : Collections.emptyList();
+		});
+	}
+
+	public static <T> T execute(DataSource dataSource, String sql, PreparedStatementHandler<T> handler) {
+		Connection connection = null;
+		PreparedStatement ps = null;
+		try {
+			connection = dataSource.getConnection();
+			ps = connection.prepareStatement(sql);
+
+			return handler.handle(ps);
+		} catch (Throwable e) {
+			log.error("execute sql error", e);
+			asyncLogger.error("{}#{}#", sql, 2);
+		} finally {
+			close(connection, ps);
+		}
+
+		return null;
+	}
+
+	public static void close(Connection connection, PreparedStatement ps, ResultSet rs) {
+		if (rs != null) {
+			try {
+				rs.close();
+			} catch (SQLException e) {
+				log.error("关闭数据库出错", e);
+			}
+		}
+		close(connection, ps);
+	}
+
+	public static void close(ResultSet rs) {
+		if (rs != null) {
+			try {
+				rs.close();
+			} catch (SQLException e) {
+				log.error("关闭数据库出错", e);
+			}
+		}
+	}
+
+	public static void close(Connection connection, PreparedStatement ps) {
+		if (ps != null) {
+			try {
+				ps.close();
+			} catch (SQLException e) {
+				log.error("关闭数据库出错", e);
+			}
+		}
+
+		close(connection);
+	}
+
+	public static void close(Connection connection) {
+		if (connection != null) {
+			try {
+				connection.close();
+			} catch (SQLException e) {
+				log.error("关闭数据库出错", e);
+			}
+		}
+	}
 	
 }

@@ -1,4 +1,4 @@
-package com.wy.panda.jdbc.memory;
+package com.wy.panda.jdbc.entity.memory;
 
 import com.wy.panda.jdbc.common.SQLOption;
 

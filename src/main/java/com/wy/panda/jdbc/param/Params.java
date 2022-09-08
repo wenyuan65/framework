@@ -39,8 +39,7 @@ public class Params {
 			int size = this.params.size();
 			for (int i = 0; i < size; i++) {
 				Param param = this.params.get(i);
-				ColumnValueHandler paramValueSetter = ColumnHandlerFactory
-						.createColumnHandler(param.getSqlType());
+				ColumnValueHandler paramValueSetter = ColumnHandlerFactory.createColumnHandler(param.getSqlType());
 				
 				paramValueSetter.setParamValue(ps, i + 1, param.getValue());
 			} 

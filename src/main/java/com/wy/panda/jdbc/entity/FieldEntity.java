@@ -134,12 +134,4 @@ public class FieldEntity {
 		this.autoIncrement = autoIncrement;
 	}
 
-//	public ParamValueSetter getParamValueSetter() {
-//		return paramValueSetter;
-//	}
-//
-//	public void setParamValueSetter(ParamValueSetter paramValueSetter) {
-//		this.paramValueSetter = paramValueSetter;
-//	}
-	
 }

@@ -1,22 +1,6 @@
 package com.wy.panda.jdbc;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.sql.DataSource;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCallback;
-
+import com.wy.panda.common.JdbcUtils;
 import com.wy.panda.common.ScanUtil;
 import com.wy.panda.jdbc.annotation.JdbcField;
 import com.wy.panda.jdbc.entity.TableEntity;
@@ -24,20 +8,25 @@ import com.wy.panda.jdbc.name.DefaultNameStrategy;
 import com.wy.panda.jdbc.name.NameStrategy;
 import com.wy.panda.log.Logger;
 import com.wy.panda.log.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.InitializingBean;
 
+import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.util.*;
+
+/**
+ * 一个数据库一个TableFactory
+ */
 public class TableFactory implements InitializingBean {
 	
 	private static Logger log = LoggerFactory.getLogger(TableFactory.class);
 
+	private String databaseName;
 	private DataSource dataSource;
 	
-	private JdbcTemplate template;
-	
 	private String scanPath;
-	
 	private String excludePath;
-	
-	private String databaseName;
 	
 	private Map<String, TableEntity> tableMap = new HashMap<>();
 	
@@ -49,7 +38,6 @@ public class TableFactory implements InitializingBean {
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		this.template = new JdbcTemplate(dataSource);
 		// 获取database name
 		findDatabasesName();
 		
@@ -77,35 +65,33 @@ public class TableFactory implements InitializingBean {
 		if (tableEntity == null) {
 			 throw new NullPointerException("TableEntity not exists for class " + clazz.getName());
 		}
-		
-		return template.execute(tableEntity.getSelectAllSQL(), new PreparedStatementCallback<List<V>>() {
 
-			@Override
-			@SuppressWarnings("unchecked")
-			public List<V> doInPreparedStatement(PreparedStatement ps)
-					throws SQLException, DataAccessException {
-				ResultSet rs = ps.executeQuery();
-				
-				List<V> result = null;
-				try {
-					 result = (List<V>) tableEntity.getResult(rs);
-				} catch (InstantiationException | IllegalAccessException e) {
-					log.error("extract result error", e);
-				} finally {
-					rs.close();
-				}
-				return result != null ? result : Collections.emptyList();
+		return JdbcUtils.execute(this.dataSource, tableEntity.getSelectAllSQL(), ps -> {
+			ResultSet rs = ps.executeQuery();
+			List<V> result;
+			try {
+				result = tableEntity.getResult(rs);
+			} finally {
+				JdbcUtils.close(rs);
 			}
+			return result != null ? result : Collections.emptyList();
 		});
 	}
-	
+
 	private void findDatabasesName() {
-		Map<String, Object> map = template.queryForMap("select database()");
-		Object object = map.get("database()");
-		if (object == null) {
-			throw new RuntimeException("'select database()' cannot found databases name");
-		}
-		databaseName = (String)object;
+		String sql = "select database()";
+		String result = JdbcUtils.execute(this.dataSource, sql, ps -> {
+			ResultSet rs = null;
+			try {
+				rs = ps.executeQuery();
+				rs.next();
+				return rs.getString(1);
+			} finally {
+				JdbcUtils.close(rs);
+			}
+		});
+
+		this.databaseName = result;
 	}
 	
 	private void parseTableEntity(Class<?> clazz) throws Exception {
@@ -118,7 +104,6 @@ public class TableFactory implements InitializingBean {
 		TableEntity table = new TableEntity(clazz);
 		table.setFactory(this);
 		table.setNameStrategy(nameStrategy);
-		table.setTemplate(template);
 		table.init();
 		
 		tableMap.put(clazzName, table);
@@ -161,14 +146,6 @@ public class TableFactory implements InitializingBean {
 
 	public void setNameStrategy(NameStrategy nameStrategy) {
 		this.nameStrategy = nameStrategy;
-	}
-
-	public JdbcTemplate getTemplate() {
-		return template;
-	}
-
-	public void setTemplate(JdbcTemplate template) {
-		this.template = template;
 	}
 
 	public Map<String, TableEntity> getTableMap() {

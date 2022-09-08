@@ -1,4 +1,4 @@
-package com.wy.panda.jdbc.memory;
+package com.wy.panda.jdbc.entity.memory;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
@@ -17,8 +17,8 @@ import com.wy.panda.jdbc.common.SQLOption;
 import com.wy.panda.jdbc.dao.Dao;
 import com.wy.panda.jdbc.entity.FieldEntity;
 import com.wy.panda.jdbc.entity.TableEntity;
-import com.wy.panda.jdbc.memory.dynamic.DynamicUpdate;
-import com.wy.panda.jdbc.memory.index.IndexManager;
+import com.wy.panda.jdbc.entity.memory.dynamic.DynamicUpdate;
+import com.wy.panda.jdbc.entity.memory.index.IndexManager;
 import com.wy.panda.jdbc.param.Params;
 
 public class MemoryTable<K, V> {

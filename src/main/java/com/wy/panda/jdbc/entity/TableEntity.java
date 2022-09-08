@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.wy.panda.common.JdbcUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -23,7 +24,7 @@ import com.wy.panda.jdbc.annotation.Id;
 import com.wy.panda.jdbc.annotation.Index;
 import com.wy.panda.jdbc.annotation.Indexes;
 import com.wy.panda.jdbc.common.JdbcConstants;
-import com.wy.panda.jdbc.memory.enhance.EnhanceUtil;
+import com.wy.panda.jdbc.entity.memory.enhance.EnhanceUtil;
 import com.wy.panda.jdbc.name.NameStrategy;
 import com.wy.panda.log.Logger;
 import com.wy.panda.log.LoggerFactory;
@@ -34,9 +35,7 @@ public class TableEntity {
 	
 	/** 数据库记录工厂 */
 	private TableFactory factory;
-	/**  */
-	private JdbcTemplate template;
-	
+
 	/** Entity类名 */
 	private Class<?> entityClass;
 	/** enhanced Entity类名 */
@@ -137,6 +136,7 @@ public class TableEntity {
 	private void parseField() throws Exception {
 		Map<String, Field> fieldMap = new HashMap<>();
 		for (Field field : fields) {
+			field.setAccessible(true);
 			fieldMap.put(field.getName(), field);
 			
 			Id key = field.getAnnotation(Id.class);
@@ -150,7 +150,7 @@ public class TableEntity {
 		}
 		
 		String sqlDescTable = String.format("desc %s", this.tableName);
-		List<Map<String, Object>> resultList = template.queryForList(sqlDescTable);
+		List<Map<String, Object>> resultList = JdbcUtils.queryListMap(this.factory.getDataSource(), sqlDescTable);
 		for (Map<String, Object> map : resultList) {
 			String columnName = (String)map.get(JdbcConstants.META_DATA_COLUMN_NAME);
 			String columnType = (String)map.get(JdbcConstants.META_DATA_COLUMN_TYPE);
@@ -192,9 +192,7 @@ public class TableEntity {
 	public void copyProperties(Object dest, Object orig) {
 		try {
 			for (Field field : fields) {
-				field.setAccessible(true);
 				Object result = field.get(orig);
-
 				field.set(dest, result);
 			}
 		} catch (Exception e) {
@@ -202,28 +200,36 @@ public class TableEntity {
 		}
 	}
 	
-	public List<Object> getResult(ResultSet resultSet) throws SQLException, InstantiationException, IllegalAccessException {
-		List<Object> list = new ArrayList<>();
+	public <T> List<T> getResult(ResultSet resultSet) throws SQLException, InstantiationException, IllegalAccessException {
+		List<T> list = new ArrayList<>();
 		ResultSetMetaData metaData = resultSet.getMetaData();
 		int size = metaData.getColumnCount();
+
+		List<FieldEntity> fieldEntityList = new ArrayList<>();
+		for (int i = 1; i <= size; i++) {
+			String columnName = metaData.getColumnName(i);
+			String name = columnToPropertyMap.get(columnName);
+			if (name == null) {
+				log.warn("columnName:{} cannot be found", columnName);
+				continue;
+			}
+
+			FieldEntity fieldEntity = fieldEntityMap.get(name);
+			fieldEntityList.add(fieldEntity);
+		}
+
 		while (resultSet.next()) {
-			Object obj = entityClass.newInstance();
+			T instance = (T)entityClass.newInstance();
 			for (int i = 1; i <= size; i++) {
-				String columnName = metaData.getColumnName(i);
-				String name = columnToPropertyMap.get(columnName);
-				if (name == null) {
-					log.warn("columnName:{} cannot be found", columnName);
-					continue;
-				}
-				
-				FieldEntity fieldEntity = fieldEntityMap.get(name);
+				FieldEntity fieldEntity = fieldEntityList.get(i - 1);
 				Object result = fieldEntity.getResultValue(resultSet, i);
-				fieldEntity.getField().setAccessible(true);
-				fieldEntity.getField().set(obj, result);
+
+				fieldEntity.getField().set(instance, result);
 			}
 			
-			list.add(obj);
+			list.add(instance);
 		}
+
 		return list;
 	}
 	
@@ -231,20 +237,27 @@ public class TableEntity {
 		List<Map<String, Object>> list = new ArrayList<>();
 		ResultSetMetaData metaData = resultSet.getMetaData();
 		int size = metaData.getColumnCount();
+
+		List<FieldEntity> fieldEntityList = new ArrayList<>();
+		for (int i = 1; i <= size; i++) {
+			String columnName = metaData.getColumnName(i);
+			String name = columnToPropertyMap.get(columnName);
+			if (name == null) {
+				log.warn("columnName:{} cannot be found", columnName);
+				continue;
+			}
+
+			FieldEntity fieldEntity = fieldEntityMap.get(name);
+			fieldEntityList.add(fieldEntity);
+		}
+
 		while (resultSet.next()) {
 			Map<String, Object> map = new HashMap<>();
 			for (int i = 1; i <= size; i++) {
-				String columnName = metaData.getColumnName(i);
-				String name = columnToPropertyMap.get(columnName);
-				if (name == null) {
-					log.warn("columnName:{} cannot be found", columnName);
-					continue;
-				}
-				
-				FieldEntity fieldEntity = fieldEntityMap.get(name);
+				FieldEntity fieldEntity = fieldEntityList.get(i - 1);
 				Object result = fieldEntity.getResultValue(resultSet, i);
 				
-				map.put(columnName, result);
+				map.put(fieldEntity.getColumnName(), result);
 			}
 			
 			list.add(map);
@@ -263,7 +276,6 @@ public class TableEntity {
 				return;
 			}
 			
-			field.setAccessible(true);
 			Object result = field.get(obj);
 			if (fieldEntity.isAutoIncrement() && fieldEntity.getFieldTypeClazz() == int.class
 					&& ((int)result) <= 0) {
@@ -286,7 +298,6 @@ public class TableEntity {
 				return sql;
 			}
 			
-			field.setAccessible(true);
 			Object result = field.get(obj);
 			Class<?> fieldType = fieldEntity.getFieldTypeClazz();
 			if (result == null || (fieldEntity.isAutoIncrement() && fieldType == int.class
@@ -317,7 +328,6 @@ public class TableEntity {
 	public void setDeleteSQLParams(PreparedStatement ps, Object key) throws IllegalArgumentException, IllegalAccessException, SQLException {
 		int paramIndex = 1;
 		
-		keyField.setAccessible(true);
 		String propertyName = keyField.getName();
 		FieldEntity fieldEntity = fieldEntityMap.get(propertyName);
 		if (fieldEntity == null) {
@@ -342,7 +352,6 @@ public class TableEntity {
 				continue;
 			} 
 			
-			field.setAccessible(true);
 			Object result = field.get(obj);
 			fieldEntity.setParamValue(ps, paramIndex++, result);
 		}
@@ -354,7 +363,6 @@ public class TableEntity {
 			return;
 		}
 
-		keyField.setAccessible(true);
 		Object result = keyField.get(obj);
 		fieldEntity.setParamValue(ps, paramIndex++, result);
 	}
@@ -362,7 +370,6 @@ public class TableEntity {
 	public void setQuerySQLParams(PreparedStatement ps, Object key) throws IllegalArgumentException, IllegalAccessException, SQLException {
 		int paramIndex = 1;
 		
-		keyField.setAccessible(true);
 		String propertyName = keyField.getName();
 		FieldEntity fieldEntity = fieldEntityMap.get(propertyName);
 		if (fieldEntity == null) {
@@ -374,17 +381,12 @@ public class TableEntity {
 	}
 	
 	public String buildUpdateSqlTemplate() {
-		StringBuilder sqlBuilder = new StringBuilder();
-		StringBuilder keyFieldBuilder = new StringBuilder();
 		boolean isFirst = true;
 		Set<String> keySetMap = new HashSet<>();
-		String keyJdbcFieldName = nameStrategy.propertyNameToColumnsName(keyField.getName());
-		keyFieldBuilder.append(keyJdbcFieldName).append("=?");
-		isFirst = false;
-		keySetMap.add(keyField.getName());	
-		
+		keySetMap.add(keyField.getName());
+
+		StringBuilder sqlBuilder = new StringBuilder();
 		sqlBuilder.append("UPDATE ").append(this.tableName).append(" SET ");
-		isFirst = true;
 		for (Field field : fields) {
 			if (keySetMap.contains(field.getName())) {
 				continue;
@@ -397,7 +399,9 @@ public class TableEntity {
 			sqlBuilder.append(jdbcFieldName).append("=?");
 			isFirst = false;
 		}
-		sqlBuilder.append(" WHERE ").append(keyFieldBuilder);
+
+		String keyJdbcFieldName = nameStrategy.propertyNameToColumnsName(keyField.getName());
+		sqlBuilder.append(" WHERE ").append(keyJdbcFieldName).append("=?");
 		
 		return sqlBuilder.toString();
 	}
@@ -520,14 +524,6 @@ public class TableEntity {
 
 	public void setKeyColoumnName(String keyColoumnName) {
 		this.keyColoumnName = keyColoumnName;
-	}
-
-	public JdbcTemplate getTemplate() {
-		return template;
-	}
-
-	public void setTemplate(JdbcTemplate template) {
-		this.template = template;
 	}
 
 	public String getTableName() {

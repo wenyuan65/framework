@@ -65,7 +65,7 @@ public class Configuration {
 	
 	/**
 	 * 初始化通用配置文件
-	 * @param commonFileNames
+	 * @param commonFileNameList
 	 */
 	public static void init(List<String> commonFileNameList) {
 		if (started) {

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -14,12 +15,11 @@ import java.util.jar.JarFile;
 
 public class ScanUtil {
 	
-	/** 扫描路径的分割符号 */
-	public static final String MULTI_SCANPATH_SEPARATOR = ",|;";
+	public static Set<Class<?>> scan(String... packages) {
+		if (packages == null) {
+			return Collections.emptySet();
+		}
 
-	public static Set<Class<?>> scan(String path) {
-		String[] packages = path.split(MULTI_SCANPATH_SEPARATOR);
-		
 		Set<Class<?>> classSet = new LinkedHashSet<Class<?>>();
 		for (String currPack : packages) {
 			doScanPackage(classSet, currPack);

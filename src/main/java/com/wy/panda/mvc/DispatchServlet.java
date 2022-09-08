@@ -76,14 +76,12 @@ public class DispatchServlet {
 	 */
 	private void initAction() throws Throwable {
 		String[] pathArray = servletConfig.getScanPath().split(",");
-		for (String path : pathArray) {
-			Set<Class<?>> classes = ScanUtil.scan(path);
-			for(Class<?> clazz : classes){
-				try {
-					initHandlers(clazz);
-				} catch (Throwable e) {
-					e.printStackTrace();
-				}
+		Set<Class<?>> classes = ScanUtil.scan(pathArray);
+		for(Class<?> clazz : classes){
+			try {
+				initHandlers(clazz);
+			} catch (Throwable e) {
+				e.printStackTrace();
 			}
 		}
 	}

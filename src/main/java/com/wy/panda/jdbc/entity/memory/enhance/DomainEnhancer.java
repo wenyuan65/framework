@@ -1,4 +1,4 @@
-package com.wy.panda.jdbc.memory.enhance;
+package com.wy.panda.jdbc.entity.memory.enhance;
 
 public interface DomainEnhancer {
 

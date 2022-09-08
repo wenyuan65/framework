@@ -1,4 +1,4 @@
-package com.wy.panda.jdbc.memory;
+package com.wy.panda.jdbc.entity.memory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -11,13 +11,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sql.DataSource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.wy.panda.jdbc.entity.memory.dynamic.DynamicUpdate;
 
 import com.wy.panda.concurrent.ScheduledThread;
 import com.wy.panda.jdbc.common.SQLOption;
 import com.wy.panda.jdbc.entity.TableEntity;
-import com.wy.panda.jdbc.memory.dynamic.DynamicUpdate;
+import com.wy.panda.log.Logger;
+import com.wy.panda.log.LoggerFactory;
 
 public class AsyncSQLManager {
 	
