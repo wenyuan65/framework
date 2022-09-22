@@ -10,7 +10,7 @@ import com.wy.panda.log.LoggerFactory;
 
 public class ScheduleExecutor {
 	
-	private static final Logger log = LoggerFactory.getRtreportLog();
+	private static final Logger log = LoggerFactory.getRtLog();
 	
 	/** 处理任务的线程池 */
 	private ThreadPoolExecutor executor = null;

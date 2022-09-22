@@ -4,10 +4,10 @@ import java.util.Objects;
 
 public class LoggerFactory {
 	
-	public static final String ASYNCDB_LOGGER = "asyncdb";
-	public static final String DAYREPORT_LOGGER = "dayreport";
-	public static final String RTREPORT_LOGGER = "rtreport";
-	public static final String OPREPORT_LOGGER = "opreport";
+	public static final String ASYNCDB_LOGGER = "asyncDB";
+	public static final String DAY_LOGGER = "dayLog";
+	public static final String RT_LOGGER = "rtLog";
+	public static final String OP_LOGGER = "opLog";
 	
 	public static Logger getLogger(Class<?> clazz) {
 		Objects.requireNonNull(clazz, "caller class cannot be null");
@@ -19,20 +19,20 @@ public class LoggerFactory {
 		return new LoggerImpl(logger);
 	} 
 	
-	public static Logger getAsyncdbLog() {
+	public static Logger getAsyncDBLog() {
 		return getLogger(ASYNCDB_LOGGER);
 	}
 	
-	public static Logger getDayreportLog() {
-		return getLogger(DAYREPORT_LOGGER);
+	public static Logger getDayLog() {
+		return getLogger(DAY_LOGGER);
 	}
 	
-	public static Logger getRtreportLog() {
-		return getLogger(RTREPORT_LOGGER);
+	public static Logger getRtLog() {
+		return getLogger(RT_LOGGER);
 	}
 	
-	public static Logger getOpreportLog() {
-		return getLogger(OPREPORT_LOGGER);
+	public static Logger getOpLog() {
+		return getLogger(OP_LOGGER);
 	}
 	
 }

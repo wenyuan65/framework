@@ -28,7 +28,7 @@ public final class Scheduler {
 	
 	private static final Logger log = LoggerFactory.getLogger(Scheduler.class);
 	
-	private static final Logger rtLog = LoggerFactory.getRtreportLog();
+	private static final Logger rtLog = LoggerFactory.getRtLog();
 	
 	/** 定时器 */
 	private static final Timer TIMER = new HashedWheelTimer(

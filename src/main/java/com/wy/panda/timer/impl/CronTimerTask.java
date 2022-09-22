@@ -17,7 +17,7 @@ import com.wy.panda.timer.quartz.Job;
 
 public class CronTimerTask implements TimerTask {
 	
-	private static final Logger log = LoggerFactory.getRtreportLog();
+	private static final Logger log = LoggerFactory.getRtLog();
 	
 	private Job job;
 	private ThreadPoolExecutor executor;

@@ -23,6 +23,7 @@ import io.netty.channel.ServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 
+@Deprecated
 public class NettyServerBootstrap implements BeanFactoryAware {
 
 	private static final Logger log = LoggerFactory.getLogger(NettyServerBootstrap.class);
