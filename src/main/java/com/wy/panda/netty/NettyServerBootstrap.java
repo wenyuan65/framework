@@ -12,7 +12,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 
 import com.wy.panda.common.ReflactUtil;
 import com.wy.panda.netty.config.NettyConfig;
-import com.wy.panda.netty2.NettyServer;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelHandler;

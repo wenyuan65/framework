@@ -1,16 +1,5 @@
 package com.wy.panda.bootstrap;
 
-import java.io.FileInputStream;
-import java.security.KeyStore;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.wy.panda.bootstrap.initlize.ContextInitlizer;
 import com.wy.panda.concurrent.DefaultThreadFactory;
 import com.wy.panda.concurrent.DefaultUncaughtExceptionHandler;
@@ -23,13 +12,16 @@ import com.wy.panda.mvc.config.DispatchServletConfig;
 import com.wy.panda.mvc.intercept.Interceptor;
 import com.wy.panda.netty2.NettyServer;
 import com.wy.panda.netty2.NettyServerConfig;
-import com.wy.panda.netty2.initializer.HttpChannelInitializer;
 import com.wy.panda.netty2.initializer.HttpsChannelInitializer;
-import com.wy.panda.netty2.initializer.TcpChannelInitializer;
 import com.wy.panda.session.SessionManager;
 import com.wy.panda.spring.ObjectFactory;
-
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ServerBootStrap {
 	
@@ -109,30 +101,32 @@ public class ServerBootStrap {
 		
 		boolean success = false;
 		if (config.isHttpsEnable()) {
-			SSLContext sslContext = createSSLContext(config);
-			HttpsChannelInitializer channelInitializer = new HttpsChannelInitializer(servlet, group, sslContext, config);
-			NettyServer server = new NettyServer("https", config.getHttpsServerConfig(), channelInitializer);
-			server.init();
-			server.start();
+			initServer("https", servlet, group, config, config.getHttpsServerConfig());
 			success = true;
 		}
 		if (config.isHttpEnable()) {
-			HttpChannelInitializer channelInitializer = new HttpChannelInitializer(servlet, group, config);
-			NettyServer server = new NettyServer("http", config.getHttpServerConfig(), channelInitializer);
-			server.init();
-			server.start();
+			initServer("http", servlet, group, config, config.getHttpServerConfig());
 			success = true;
 		}
 		if (config.isTcpEnable()) {
-			TcpChannelInitializer channelInitializer = new TcpChannelInitializer(servlet, group, config);
-			NettyServer server = new NettyServer("tcp", config.getTcpServerConfig(), channelInitializer);
-			server.init();
-			server.start();
+			initServer("tcp", servlet, group, config, config.getTcpServerConfig());
 			success = true;
 		}
 		if (!success) {
 			throw new Exception("no server boostraped");
 		}
+	}
+
+	private void initServer(String serverName, DispatchServlet servlet, NioEventLoopGroup group, ServerConfig config, NettyServerConfig httpsServerConfig) throws Exception {
+		String nettyServerInitializerClazz = httpsServerConfig.getNettyServerInitializerClazz();
+		
+		Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(nettyServerInitializerClazz);
+		Constructor<?> constructor = clazz.getDeclaredConstructor(DispatchServlet.class, EventExecutorGroup.class, ServerConfig.class);
+		HttpsChannelInitializer nettyServerInitializer = (HttpsChannelInitializer)constructor.newInstance(servlet, group, config);
+
+		NettyServer server = new NettyServer(serverName, httpsServerConfig, nettyServerInitializer);
+		server.init();
+		server.start();
 	}
 
 	/**
@@ -264,64 +258,19 @@ public class ServerBootStrap {
 		if (StringUtils.isNotBlank(value)) {
 			nettyConfig.setWorkerEventLoopNum(Integer.parseInt(value));
 		}
-		
+
+		value = Configuration.getValue(protocol, "serverInitializer");
+		if (StringUtils.isNotBlank(value)) {
+			nettyConfig.setNettyServerInitializerClazz(value.trim());
+		}
+
 		try {
 			value = Configuration.getValue(protocol, "port");
 			nettyConfig.setPort(Integer.parseInt(value));
 		} catch (Exception e) {
 			log.error("protocol:{} port config error", protocol);
 		}
-		// TODO: channel配置
-//				http.option.TCP_NODELAY = true
-//				http.childOption.TCP_NODELAY = true
 		return nettyConfig;
 	}
-	
-	/**
-	 * 读取https端口的sslContext
-	 * @param config
-	 * @return
-	 * @throws Exception
-	 */
-	private SSLContext createSSLContext(ServerConfig config) throws Exception {
-		String protocol = Configuration.getProperty("ssl.protocol");
-		String keyAlgorithm = Configuration.getProperty("ssl.key.algorithm");
-		String keyType = Configuration.getProperty("ssl.key.type");
-		String keyStore = Configuration.getProperty("ssl.key.store");
-		String keyStorePassword = Configuration.getProperty("ssl.key.storePassword");
-		String trustAlgorithm = Configuration.getProperty("ssl.trust.algorithm");
-		String trustType = Configuration.getProperty("ssl.trust.type");
-		String trustStore = Configuration.getProperty("ssl.trust.store");
-		String trustStorePassword = Configuration.getProperty("ssl.trust.storePassword");
-		String keyKeyPassword = Configuration.getProperty("ssl.key.keyPassword");
-		String needClientAuth = Configuration.getProperty("ssl.needClientAuth");
-		
-		log.info("{} ==> {}", "protocol", protocol);
-		log.info("{} ==> {}", "keyAlgorithm", keyAlgorithm);
-		log.info("{} ==> {}", "keyType", keyType);
-		log.info("{} ==> {}", "keyStore", keyStore);
-		log.info("{} ==> {}", "keyStorePassword", keyStorePassword);
-		log.info("{} ==> {}", "trustAlgorithm", trustAlgorithm);
-		log.info("{} ==> {}", "trustType", trustType);
-		log.info("{} ==> {}", "trustStore", trustStore);
-		log.info("{} ==> {}", "trustStorePassword", trustStorePassword);
-		log.info("{} ==> {}", "keyKeyPassword", keyKeyPassword);
-		log.info("{} ==> {}", "needClientAuth", needClientAuth);
-		
-		SSLContext ctx = SSLContext.getInstance(protocol);
-		KeyManagerFactory kmf = KeyManagerFactory.getInstance(keyAlgorithm);
-		TrustManagerFactory tmf = TrustManagerFactory.getInstance(trustAlgorithm);
-		KeyStore ks = KeyStore.getInstance(keyType);
-		KeyStore tks = KeyStore.getInstance(trustType);
-		ks.load(new FileInputStream(keyStore), keyStorePassword.toCharArray());
-		tks.load(new FileInputStream(trustStore), trustStorePassword.toCharArray());
-		kmf.init(ks, keyKeyPassword.toCharArray());
-		tmf.init(tks);
-		ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-		
-		config.setNeedClientAuth("true".equalsIgnoreCase(needClientAuth));
-		
-		return ctx;
-	}
-	
+
 }

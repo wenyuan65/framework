@@ -5,16 +5,14 @@ import java.util.Map;
 public class NettyServerConfig {
 	
 	private String serverName = "netty";
-	
+
 	private int bossEventLoopNum = 1;
 	
 	private int workerEventLoopNum = 8;
 	
 	private int msgProcessEventGroupNum = 8;
-	
-	private Map<String, Object> options;
-	
-	private Map<String, Object> childOptions;
+
+	private String nettyServerInitializerClazz = "";
 	
 	private int port;
 	
@@ -54,20 +52,12 @@ public class NettyServerConfig {
 		this.msgProcessEventGroupNum = msgProcessEventGroupNum;
 	}
 
-	public Map<String, Object> getOptions() {
-		return options;
+	public String getNettyServerInitializerClazz() {
+		return nettyServerInitializerClazz;
 	}
 
-	public void setOptions(Map<String, Object> options) {
-		this.options = options;
-	}
-
-	public Map<String, Object> getChildOptions() {
-		return childOptions;
-	}
-
-	public void setChildOptions(Map<String, Object> childOptions) {
-		this.childOptions = childOptions;
+	public void setNettyServerInitializerClazz(String nettyServerInitializerClazz) {
+		this.nettyServerInitializerClazz = nettyServerInitializerClazz;
 	}
 
 	public int getPort() {

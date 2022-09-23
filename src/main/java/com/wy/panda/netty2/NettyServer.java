@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
+import com.wy.panda.netty2.initializer.NettyServerInitializer;
 import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +30,8 @@ public class NettyServer {
 	private String name;
 	/** netty配置 */
 	private NettyServerConfig config;
-	/** channel初始化配置 */
-	private ChannelInitializer<? extends Channel> initializer;
+	/** 服务器初始化定制配置 */
+	private NettyServerInitializer initializer;
 	
 	/** netty启动类 */
 	private ServerBootstrap bootstrap = new ServerBootstrap(); 
@@ -38,7 +39,7 @@ public class NettyServer {
 	private EventLoopGroup bossGroup;
 	private EventLoopGroup workerGroup;
 	
-	public NettyServer(String name, NettyServerConfig config, ChannelInitializer<? extends Channel> initializer) {
+	public NettyServer(String name, NettyServerConfig config, NettyServerInitializer initializer) {
 		Objects.requireNonNull(config, "Netty config cann't be null");
 		Objects.requireNonNull(initializer, "Netty initializer cann't be null");
 		
@@ -55,12 +56,8 @@ public class NettyServer {
 		bootstrap.channel(config.isEpoll() ? EpollServerSocketChannel.class : NioServerSocketChannel.class);
 
 		bootstrap.option(ChannelOption.ALLOCATOR, config.isUsedPooled() ? PooledByteBufAllocator.DEFAULT : UnpooledByteBufAllocator.DEFAULT);
-		bootstrap.option(ChannelOption.TCP_NODELAY, true);
-		bootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, WriteBufferWaterMark.DEFAULT);
-		bootstrap.childOption(ChannelOption.SO_BACKLOG, 1024);
-		bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
 
-		bootstrap.childHandler(initializer);
+		initializer.initBootstrap(bootstrap);
 	}
 	
 	public void start() {
