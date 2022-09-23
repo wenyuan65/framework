@@ -30,19 +30,12 @@ public class RepositoryMethod<T> {
 		
 		Object result = null;
 		SQLOption sqlType = sqlCommand.getSqlType();
-		switch (sqlType) {
-		case INSERT:
-		case DELETE:
-		case UPDATE:
-			result = executeUpdate(dataSource, finalSql);
-			break;
-		case SELECT:
+		if (sqlType == SQLOption.SELECT) {
 			result = executeQuery(dataSource, finalSql);
-			break;
-		default:
-			break;
+		} else {
+			result = executeUpdate(dataSource, finalSql);
 		}
-		
+
 		return result;
 	}
 	

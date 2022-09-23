@@ -1,6 +1,7 @@
 package com.wy.panda.bootstrap;
 
 import com.wy.panda.bootstrap.initlize.ContextInitlizer;
+import com.wy.panda.common.SystemProperty;
 import com.wy.panda.concurrent.DefaultThreadFactory;
 import com.wy.panda.concurrent.DefaultUncaughtExceptionHandler;
 import com.wy.panda.config.Configuration;
@@ -29,7 +30,7 @@ public class ServerBootStrap {
 	private static final Logger log = LoggerFactory.getLogger(ServerBootStrap.class);
 
 	public void startup() throws Throwable {
-		System.setProperty("panda.output.enhanceclass", "true");
+		System.setProperty(SystemProperty.ENHANCE_CLASS_OUTPUT, "true");
 		Thread.currentThread().setContextClassLoader(new PandaClassLoader());
 		
 		// 读取配置文件
