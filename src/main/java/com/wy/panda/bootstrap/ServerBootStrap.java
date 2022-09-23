@@ -13,6 +13,7 @@ import com.wy.panda.mvc.intercept.Interceptor;
 import com.wy.panda.netty2.NettyServer;
 import com.wy.panda.netty2.NettyServerConfig;
 import com.wy.panda.netty2.initializer.HttpsChannelInitializer;
+import com.wy.panda.netty2.initializer.NettyServerInitializer;
 import com.wy.panda.session.SessionManager;
 import com.wy.panda.spring.ObjectFactory;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -122,7 +123,7 @@ public class ServerBootStrap {
 		
 		Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(nettyServerInitializerClazz);
 		Constructor<?> constructor = clazz.getDeclaredConstructor(DispatchServlet.class, EventExecutorGroup.class, ServerConfig.class);
-		HttpsChannelInitializer nettyServerInitializer = (HttpsChannelInitializer)constructor.newInstance(servlet, group, config);
+		NettyServerInitializer nettyServerInitializer = (NettyServerInitializer)constructor.newInstance(servlet, group, config);
 
 		NettyServer server = new NettyServer(serverName, httpsServerConfig, nettyServerInitializer);
 		server.init();
