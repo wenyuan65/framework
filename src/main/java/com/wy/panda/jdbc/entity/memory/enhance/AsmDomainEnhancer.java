@@ -1,15 +1,13 @@
 package com.wy.panda.jdbc.entity.memory.enhance;
 
 import com.wy.panda.common.ReflactUtil;
+import com.wy.panda.jdbc.entity.FieldEntity;
 import com.wy.panda.jdbc.entity.TableEntity;
 import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.Label;
 import jdk.internal.org.objectweb.asm.MethodVisitor;
 import jdk.internal.org.objectweb.asm.Opcodes;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.lang.reflect.Field;
 
 public class AsmDomainEnhancer extends AbstractDomainEnhancer {
@@ -25,19 +23,12 @@ public class AsmDomainEnhancer extends AbstractDomainEnhancer {
         // getDynamicUpdateSQL方法及其桥接方法
         generateDynamicUpdateMethod(cw, ctx.getClazz(), ctx.getSuperClassPathName(), ctx.getEnhancedClassPathName(), ctx.getTableEntity());
         // clones方法及其桥接方法
-        generateCloneMethod(cw, ctx.getClazz(), ctx.getSuperClassPathName(), ctx.getEnhancedClassPathName());
+        generateCloneMethod(cw, ctx.getClazz(), ctx.getSuperClassPathName(), ctx.getEnhancedClassPathName(), ctx.getTableEntity());
         cw.visitEnd();
 
         byte[] data = cw.toByteArray();
-        if (EnhanceUtil.outputEnhancedClass) {
-            File file = new File(ctx.getClazz().getSimpleName() + ENHANCED_CLASS_NAME_SUFFIX + ".class");
-            try (FileOutputStream fos = new FileOutputStream(file);) {
-                fos.write(data);
-                fos.flush();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+
+        outputEnhancedClass(ctx, data, "class");
 
         return ctx.getClassLoader().defineClass(ctx.getEnhancedClazzName(), data);
     }
@@ -82,9 +73,9 @@ public class AsmDomainEnhancer extends AbstractDomainEnhancer {
 
             Class<?> type = field.getType();
             if (type.isPrimitive()) {
-                buildPrimriyFieldUpdateSqlSegement(mv, superClassPathName, tableEntityPathName, type, field);
+                buildPrimriyFieldUpdateSqlSegement(mv, superClassPathName, tableEntityPathName, type, field, tableEntity);
             } else {
-                buildObjectFieldUpdateSqlSegement(mv, superClassPathName, tableEntityPathName, type, field);
+                buildObjectFieldUpdateSqlSegement(mv, superClassPathName, tableEntityPathName, type, field, tableEntity);
             }
         }
 
@@ -94,7 +85,7 @@ public class AsmDomainEnhancer extends AbstractDomainEnhancer {
         mv.visitLdcInsn("");
         mv.visitInsn(Opcodes.ARETURN);
 
-        String getterName = generateGetterName(keyFieldName);
+        String getterName = tableEntity.getFieldEntity(keyFieldName).getGetterName();
         Class<?> keyFieldType = tableEntity.getKeyField().getType();
         String keyFieldDesc = ReflactUtil.getDesc(keyFieldType);
         String getterMethodDesc = "()" + keyFieldDesc;
@@ -143,9 +134,9 @@ public class AsmDomainEnhancer extends AbstractDomainEnhancer {
     }
 
     private static void buildObjectFieldUpdateSqlSegement(MethodVisitor mv, String superClassPathName,
-                                                          String tableEntityPathName, Class<?> type, Field field) {
+                                                          String tableEntityPathName, Class<?> type, Field field, TableEntity tableEntity) {
         String fieldName = field.getName();
-        String getterName = generateGetterName(fieldName);
+        String getterName = tableEntity.getFieldEntity(fieldName).getGetterName();
         String fieldDesc = ReflactUtil.getDesc(type);
         String getterMethodDesc = "()" + fieldDesc;
 //		String typePathName = type.getName().replace('.', '/');
@@ -225,10 +216,10 @@ public class AsmDomainEnhancer extends AbstractDomainEnhancer {
     }
 
     private static void buildPrimriyFieldUpdateSqlSegement(MethodVisitor mv, String superClassPathName,
-                                                           String tableEntityPathName, Class<?> type, Field field) {
+                                                           String tableEntityPathName, Class<?> type, Field field, TableEntity tableEntity) {
         String fieldName = field.getName();
         // getter方法的名称
-        String getterName = generateGetterName(fieldName);
+        String getterName = tableEntity.getFieldEntity(fieldName).getGetterName();
         // 字段类型描述符
         String fieldDesc = ReflactUtil.getDesc(type);
         // getter方法的描述符
@@ -289,7 +280,7 @@ public class AsmDomainEnhancer extends AbstractDomainEnhancer {
         mv.visitLabel(tmpLabel3);
     }
 
-    private static <V> void generateCloneMethod(ClassWriter cw, Class<V> clazz, String superClassPathName, String enhancedClassPathName) {
+    private static <V> void generateCloneMethod(ClassWriter cw, Class<V> clazz, String superClassPathName, String enhancedClassPathName, TableEntity tableEntity) {
         // 定义方法
         String methodParamSign = String.format("()L%s;", superClassPathName);
         MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "clones", methodParamSign, null, null);
@@ -302,8 +293,9 @@ public class AsmDomainEnhancer extends AbstractDomainEnhancer {
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
             String fieldName = field.getName();
-            String getterName = generateGetterName(fieldName);
-            String setterName = generateSetterName(fieldName);
+            FieldEntity fieldEntity = tableEntity.getFieldEntity(fieldName);
+            String getterName = fieldEntity.getGetterName();
+            String setterName = fieldEntity.getSetterName();
             String fieldDesc = ReflactUtil.getDesc(field.getType());
 
             mv.visitVarInsn(Opcodes.ALOAD, 1);
@@ -337,17 +329,17 @@ public class AsmDomainEnhancer extends AbstractDomainEnhancer {
         mv.visitEnd();
     }
 
-    private static String generateGetterName(String fieldName) {
-        StringBuilder sb = new StringBuilder();
-        return sb.append("get").append(Character.toUpperCase(fieldName.charAt(0)))
-                .append(fieldName.substring(1)).toString();
-    }
-
-    private static String generateSetterName(String fieldName) {
-        StringBuilder sb = new StringBuilder();
-        return sb.append("set").append(Character.toUpperCase(fieldName.charAt(0)))
-                .append(fieldName.substring(1)).toString();
-    }
+//    private static String generateGetterName(String fieldName) {
+//        StringBuilder sb = new StringBuilder();
+//        return sb.append("get").append(Character.toUpperCase(fieldName.charAt(0)))
+//                .append(fieldName.substring(1)).toString();
+//    }
+//
+//    private static String generateSetterName(String fieldName) {
+//        StringBuilder sb = new StringBuilder();
+//        return sb.append("set").append(Character.toUpperCase(fieldName.charAt(0)))
+//                .append(fieldName.substring(1)).toString();
+//    }
 
     @SuppressWarnings("unused")
     private static String generateGetterMethodDesc(Field field) {

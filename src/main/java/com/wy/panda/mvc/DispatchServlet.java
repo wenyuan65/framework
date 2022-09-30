@@ -1,21 +1,11 @@
 package com.wy.panda.mvc;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.wy.panda.common.ScanUtil;
 import com.wy.panda.exception.IllegalParametersException;
 import com.wy.panda.log.Logger;
 import com.wy.panda.log.LoggerFactory;
 import com.wy.panda.mvc.annotation.Action;
-import com.wy.panda.mvc.annotation.Command;
+import com.wy.panda.mvc.annotation.CommandMarker;
 import com.wy.panda.mvc.config.DispatchServletConfig;
 import com.wy.panda.mvc.domain.Request;
 import com.wy.panda.mvc.domain.Response;
@@ -24,6 +14,13 @@ import com.wy.panda.mvc.result.ByteResult;
 import com.wy.panda.mvc.result.NoActionResult;
 import com.wy.panda.mvc.result.Result;
 import com.wy.panda.spring.ObjectFactory;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 public class DispatchServlet {
 
@@ -37,7 +34,9 @@ public class DispatchServlet {
 	
 	/** 命令存储 */
 	private Map<String, Invoker> actionMap = new HashMap<>();
-	
+	/** 命令存储 */
+	private Map<Integer, Invoker> codeMap = new HashMap<>();
+
 	/** 默认的返回 */
 	private ByteResult defaultResult = new ByteResult(null);
 	
@@ -49,31 +48,15 @@ public class DispatchServlet {
 		this.servletContext = servletContext;
 	}
 	
-	/**
-	 * 添加拦截器
-	 * @param interceptorList
-	 */
 	public void addInterceptors(List<Interceptor> interceptorList) {
 		this.interceptors.addAll(interceptorList);
 	}
 	
-	/**
-	 * 初始化命令
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 * @throws IllegalParametersException
-	 */
 	public void init() throws Throwable {
 		initAction();
 		initInterceptors();
 	}
 
-	/**
-	 * 初始化
-	 * @throws IllegalParametersException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 */
 	private void initAction() throws Throwable {
 		String[] pathArray = servletConfig.getScanPath().split(",");
 		Set<Class<?>> classes = ScanUtil.scan(pathArray);
@@ -107,37 +90,55 @@ public class DispatchServlet {
 		Object obj = null;
 		Method[] methods = clazz.getDeclaredMethods();
 		for (Method method : methods) {
-			Command command = method.getAnnotation(Command.class);
-			if(command == null){
-				continue;
+			Annotation[] annotations = method.getDeclaredAnnotations();
+			for (Annotation annotation : annotations) {
+				Class<? extends Annotation> annotationType = annotation.annotationType();
+				CommandMarker commandMarkerAnnotation = annotationType.getAnnotation(CommandMarker.class);
+				if (commandMarkerAnnotation == null) {
+					continue;
+				}
+
+				Method value = annotationType.getDeclaredMethod("value");
+				Object result = value.invoke(annotation); // cmd
+
+				Field codeField = result.getClass().getDeclaredField(commandMarkerAnnotation.code());
+				Field actionField = result.getClass().getDeclaredField(commandMarkerAnnotation.action());
+				codeField.setAccessible(true);
+				actionField.setAccessible(true);
+
+				int code = (int)codeField.get(result);
+				String commandName = (String)actionField.get(result);
+
+				if (StringUtils.isBlank(commandName)) {
+					String msg = String.format("command cannot be blank for %s.%s()", clazz.getName(), method.getName());
+					throw new IllegalParametersException(msg);
+				}
+				if (actionMap.containsKey(commandName)) {
+					String msg = String.format("command cannot be dumplicated for %s in %s.%s()", commandName, clazz.getName(), method.getName());
+					throw new IllegalParametersException(msg);
+				}
+				if (codeMap.containsKey(code)) {
+					String msg = String.format("command cannot be dumplicated for %s in %s.%s()", result.getClass().getSimpleName(), clazz.getName(), method.getName());
+					throw new IllegalParametersException(msg);
+				}
+
+				// 创建action实例
+				if (obj == null) {
+					obj = ObjectFactory.getObject(clazz, null);
+				}
+
+				Invoker invoker = new Invoker(obj, method);
+				invoker.init();
+				actionMap.put(commandName, invoker);
+				codeMap.put(code, invoker);
+
+				log.info("init command:{}, handler:{}#{}", commandName, clazz.getSimpleName(), method.getName());
+
+				break;
 			}
-			
-			String commandName = command.value();
-			if (StringUtils.isBlank(commandName)) {
-				String msg = String.format("command cannot be blank for %s.%s()", clazz.getName(), method.getName());
-				throw new IllegalParametersException(msg);
-			}
-			if (actionMap.containsKey(commandName)) {
-				String msg = String.format("command cannot be dumplicated for %s in %s.%s()", commandName, clazz.getName(), method.getName());
-				throw new IllegalParametersException(msg);
-			}
-			
-			// 创建action实例
-			if (obj == null) {
-				obj = ObjectFactory.getObject(clazz, null);
-			}
-			
-			Invoker invoker = new Invoker(obj, method);
-			invoker.init();
-			actionMap.put(commandName, invoker);
-			
-			log.info("init command:{}, handler:{}#{}", commandName, clazz.getSimpleName(), method.getName());
 		}
 	}
 	
-	/**
-	 * 设置拦截器顺序
-	 */
 	private void initInterceptors() {
 		if (interceptors.size() <= 1) {
 			return;
@@ -150,14 +151,15 @@ public class DispatchServlet {
 		}
 	}
 
-	/**
-	 * 执行command
-	 * @param request
-	 * @param response
-	 */
 	public void dispatch(Request request, Response response) {
+		Invoker invoker = null;
+		if (request.getCode() > 0) {
+			invoker = codeMap.get(request.getCode());
+		} else {
+			invoker = actionMap.get(request.getCommand());
+		}
+
 		Result result = null;
-		Invoker invoker = actionMap.get(request.getCommand());
 		if (invoker != null) {
 			// 设置调用系统环境，让command执行过程中，可以获得applicationContext
 			request.setServletContext(this.servletContext);
@@ -172,6 +174,7 @@ public class DispatchServlet {
 			result.render(request, response);
 		} else {
 			result = new NoActionResult(request.getCommand());
+			result.render(request, response);
 		}
 	}
 	

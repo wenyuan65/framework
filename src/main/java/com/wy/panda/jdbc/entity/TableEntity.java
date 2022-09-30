@@ -182,6 +182,8 @@ public class TableEntity {
 			entity.setAutoIncrement(autoIncrement);
 			entity.setPrimary(isPrimary);
 			entity.setFieldTypeClazz(field.getType());
+			entity.setGetterName(nameStrategy.getGetterName(propertyName));
+			entity.setSetterName(nameStrategy.getSetterName(propertyName));
 			entity.init();
 			fieldEntityMap.put(propertyName, entity);
 			columnToPropertyMap.put(columnName, propertyName);

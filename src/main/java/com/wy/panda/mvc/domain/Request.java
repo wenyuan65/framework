@@ -9,8 +9,10 @@ public class Request {
 
 	/** 请求Id */
 	private int requestId;
-	/** 请求命令 */
+	/** 请求命令，字符串形式 */
 	private String command;
+	/** 请求命令，数字形式 */
+	private int code;
 	/** playerId */
 	private int playerId;
 	/** 请求参数 */
@@ -64,6 +66,14 @@ public class Request {
 
 	public void setRequestId(int requestId) {
 		this.requestId = requestId;
+	}
+
+	public int getCode() {
+		return code;
+	}
+
+	public void setCode(int code) {
+		this.code = code;
 	}
 
 	public String getCommand() {

@@ -11,5 +11,9 @@ public interface NameStrategy {
 	public String tableNameToClassName(String tableName);
 	
 	public String classNameToTableName(String className);
-	
+
+	public String getSetterName(String fieldName);
+
+	public String getGetterName(String fieldName);
+
 }

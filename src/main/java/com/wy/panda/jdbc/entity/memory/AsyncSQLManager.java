@@ -94,8 +94,12 @@ public class AsyncSQLManager {
 			case UPDATE: {
 				DynamicUpdate dynamicUpdateObject = (DynamicUpdate) args[1];
 				String dynamicUpdateSQL = dynamicUpdateObject.getDynamicUpdateSQL(args[0], args[1], tableEntity);
-				log.info("#{}#{}#{}#{}", tableName, count, dynamicUpdateSQL, 1);
-				queue.add(new SQLEntity(op, dynamicUpdateSQL, count, tableName));
+				if (dynamicUpdateSQL == null || dynamicUpdateSQL.isEmpty()) {
+					log.info("#{}#{}#{}#{}", tableName, count, dynamicUpdateSQL, 0);
+				} else {
+					log.info("#{}#{}#{}#{}", tableName, count, dynamicUpdateSQL, 1);
+					queue.add(new SQLEntity(op, dynamicUpdateSQL, count, tableName));
+				}
 			}
 				break;
 			default:

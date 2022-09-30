@@ -117,7 +117,7 @@ public class DefaultNameStrategy implements NameStrategy {
 		
 		return propertyNameToColumnsName(sb.toString());
 	}
-	
+
 	@Override
 	public String tableNameToClassName(String tableName) {
 		String propertyName = columnsNameToPropertyName(tableName);
@@ -126,6 +126,20 @@ public class DefaultNameStrategy implements NameStrategy {
 		sb.append(first.toUpperCase()).append(propertyName.substring(1));
 		
 		return sb.toString();
+	}
+
+	@Override
+	public String getSetterName(String fieldName) {
+		StringBuilder sb = new StringBuilder();
+		return sb.append("set").append(Character.toUpperCase(fieldName.charAt(0)))
+				.append(fieldName.substring(1)).toString();
+	}
+
+	@Override
+	public String getGetterName(String fieldName) {
+		StringBuilder sb = new StringBuilder();
+		return sb.append("get").append(Character.toUpperCase(fieldName.charAt(0)))
+				.append(fieldName.substring(1)).toString();
 	}
 	
 }

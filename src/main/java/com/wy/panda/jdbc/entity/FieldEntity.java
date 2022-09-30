@@ -30,7 +30,10 @@ public class FieldEntity {
 	protected boolean primary;
 	/** 自动增长 */
 	protected boolean autoIncrement;
-	
+	/** getter/setter方法名称 */
+	protected String setterName;
+	protected String getterName;
+
 	protected ColumnValueHandler paramValueSetter;
 	protected ColumnValueHandler autoIncrementParamValueSetter;
 	
@@ -134,4 +137,19 @@ public class FieldEntity {
 		this.autoIncrement = autoIncrement;
 	}
 
+	public String getSetterName() {
+		return setterName;
+	}
+
+	public void setSetterName(String setterName) {
+		this.setterName = setterName;
+	}
+
+	public String getGetterName() {
+		return getterName;
+	}
+
+	public void setGetterName(String getterName) {
+		this.getterName = getterName;
+	}
 }

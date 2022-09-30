@@ -37,8 +37,4 @@ public class EnhanceUtil {
 		return domainEnhancer.enhance(clazz, tableEntity);
 	}
 
-	public static void main(String[] args) throws Exception {
-		System.out.println(DynamicUpdate.class.getName().replace('.', '/'));
-	}
-	
 }
