@@ -1,16 +1,15 @@
 package com.wy.panda.netty2;
 
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-
 import com.wy.panda.log.Logger;
 import com.wy.panda.log.LoggerFactory;
-
+import com.wy.panda.netty2.initializer.NettyClientInitializer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -25,18 +24,14 @@ public class NettyClient {
 	/** netty配置 */
 	private NettyClientConfig config;
 	/** channel初始化配置 */
-	private ChannelInitializer<? extends Channel> initializer;
+	private NettyClientInitializer initializer;
 	
 	/** netty启动类 */
 	private Bootstrap bootstrap = new Bootstrap(); 
 	/** netty线程 */
 	private EventLoopGroup group;
 	
-	public NettyClient(String name, NettyClientConfig config, ChannelInitializer<? extends Channel> initializer) {
-		Objects.requireNonNull(name, "netty client name cannot be null");
-		Objects.requireNonNull(config, "netty client config cannot be null");
-		Objects.requireNonNull(initializer, "netty client initializer cannot be null");
-		
+	public NettyClient(String name, NettyClientConfig config, NettyClientInitializer initializer) {
 		this.name = name;
 		this.config = config;
 		this.initializer = initializer;
@@ -47,9 +42,8 @@ public class NettyClient {
 		bootstrap.group(group);
 		bootstrap.channel(config.isEpoll() ? EpollSocketChannel.class: NioSocketChannel.class);
 		bootstrap.option(ChannelOption.ALLOCATOR, config.isUsePool() ? PooledByteBufAllocator.DEFAULT  : UnpooledByteBufAllocator.DEFAULT);
-		bootstrap.option(ChannelOption.TCP_NODELAY, true);
 
-		bootstrap.handler(initializer);
+		initializer.initBootstrap(bootstrap);
 	}
 	
 	public Channel connect(String host, int port, int timeoutMs) throws Exception {

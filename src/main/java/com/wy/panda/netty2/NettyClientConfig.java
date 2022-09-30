@@ -14,8 +14,6 @@ public class NettyClientConfig {
 	
 	private int msgProcessEventGroupNum = 8;
 	
-	private Map<String, Object> options;
-
 	public String getName() {
 		return name;
 	}
@@ -56,12 +54,4 @@ public class NettyClientConfig {
 		this.msgProcessEventGroupNum = msgProcessEventGroupNum;
 	}
 
-	public Map<String, Object> getOptions() {
-		return options;
-	}
-
-	public void setOptions(Map<String, Object> options) {
-		this.options = options;
-	}
-	
 }

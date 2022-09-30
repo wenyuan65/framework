@@ -1,8 +1,8 @@
-package com.wy.panda.jdbc.entity.memory.enhance;
+package com.wy.panda.jdbc.memory.enhance;
 
 import java.lang.reflect.Method;
 
-import com.wy.panda.jdbc.entity.memory.dynamic.DynamicUpdate;
+import com.wy.panda.jdbc.memory.dynamic.DynamicUpdate;
 import com.wy.panda.proxy.cglib.CglibProxy;
 
 import net.sf.cglib.proxy.MethodInterceptor;

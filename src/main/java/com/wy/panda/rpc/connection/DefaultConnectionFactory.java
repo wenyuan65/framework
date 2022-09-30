@@ -5,18 +5,19 @@ import com.wy.panda.log.LoggerFactory;
 import com.wy.panda.netty2.NettyClient;
 import com.wy.panda.netty2.NettyClientConfig;
 
+import com.wy.panda.netty2.initializer.NettyClientInitializer;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 
 public class DefaultConnectionFactory implements ConnectionFactory {
 	
 	public static final Logger log = LoggerFactory.getLogger(ConnectionFactory.class);
-	
-	private ChannelInitializer<? extends Channel> initializer;
+
 	private NettyClientConfig config;
+	private NettyClientInitializer initializer;
 	protected NettyClient client;
 	
-	public DefaultConnectionFactory(NettyClientConfig config, ChannelInitializer<? extends Channel> initializer) {
+	public DefaultConnectionFactory(NettyClientConfig config, NettyClientInitializer initializer) {
 		this.config = config;
 		this.initializer = initializer;
 	}

@@ -1,19 +1,25 @@
 package com.wy.panda.rpc;
 
+import com.wy.panda.log.Logger;
+import com.wy.panda.log.LoggerFactory;
 import com.wy.panda.netty2.NettyClientConfig;
 import com.wy.panda.rpc.connection.ConnectionFactory;
 import com.wy.panda.rpc.connection.DefaultConnectionFactory;
 import com.wy.panda.rpc.handler.RpcClientHandler;
 import com.wy.panda.rpc.handler.RpcRequestCodec;
 import com.wy.panda.rpc.handler.RpcResponseCodec;
+import com.wy.panda.rpc.initializer.RpcClientInitializer;
 import com.wy.panda.rpc.serilizable.Serializable;
 import com.wy.panda.rpc.serilizable.SerializerManager;
-
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class RpcManager {
+
+	private static final Logger logger = LoggerFactory.getLogger(RpcManager.class);
 
 	public RpcManager() {}
 
@@ -25,37 +31,51 @@ public class RpcManager {
 	
 	private volatile boolean inited = false;
 	
-	private boolean compress = false;
+	private RpcClient client;
+
+	private AtomicInteger rpcRequestIdCounter = new AtomicInteger(0);
+
+	private long timeout = 5000;
 	
 	public void init(final boolean compress) {
 		if (inited) {
 			return;
 		}
-		
-		this.compress = compress;
-		
+
 		NettyClientConfig config = new NettyClientConfig();
 		config.setEpoll(false);
 		config.setEventGroupNum(4);
 		config.setUsePool(true);
-//		config.setOptions(options);
-		
-		Serializable serializer = SerializerManager.getInstance().getSerializer();
-		
-		ChannelInitializer<NioSocketChannel> initializer = new ChannelInitializer<NioSocketChannel>() {
 
-			@Override
-			protected void initChannel(NioSocketChannel ch) throws Exception {
-				ChannelPipeline pipeline = ch.pipeline();
-				pipeline.addLast("responseDecoder", new RpcResponseCodec(RpcManager.this.compress, serializer));
-				pipeline.addLast("requestEncoder", new RpcRequestCodec(RpcManager.this.compress, serializer));
-				pipeline.addLast("rpcClientHandler", new RpcClientHandler());
-			}
-		};
-		
-		ConnectionFactory connectionFactory = new DefaultConnectionFactory(config, initializer);
-		RpcClient client = new RpcClient(connectionFactory);
+		Serializable serializer = SerializerManager.getInstance().getSerializer();
+		RpcClientInitializer clientInitializer = new RpcClientInitializer(compress, serializer);
+		ConnectionFactory connectionFactory = new DefaultConnectionFactory(config, clientInitializer);
+
+		client = new RpcClient(connectionFactory);
 		client.start();
 	}
-	
+
+	public Object send(int code, String host, int port, Object... args) {
+		RpcRequest request = new RpcRequest(getNextRequestId(), code, args);
+		request.setHost(host);
+		request.setPort(port);
+
+		RpcResponse response = new RpcResponse(request.getRequestId());
+		try {
+			client.invokeSync(request, response, timeout);
+			if (response.getCause() != null) {
+
+			}
+			return response.getResult();
+		} catch (Throwable e) {
+			logger.error("invoke rpc error, {}, {}:{}", code, host, port);
+		}
+
+		return null;
+	}
+
+	public int getNextRequestId() {
+		return rpcRequestIdCounter.decrementAndGet();
+	}
+
 }

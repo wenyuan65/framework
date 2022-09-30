@@ -7,7 +7,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.wy.panda.jdbc.entity.memory.dynamic.DynamicUpdate;
+import com.wy.panda.jdbc.memory.dynamic.DynamicUpdate;
 
 public class ReflactUtil {
 	

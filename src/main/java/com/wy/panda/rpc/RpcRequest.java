@@ -5,7 +5,7 @@ public class RpcRequest {
 	/** 请求id */
 	private int requestId;
 	/** 请求command */
-	private String command;
+	private int command;
 	/** 参数 */
 	private RpcRequestParams param;
 	
@@ -18,7 +18,7 @@ public class RpcRequest {
 	
 	public RpcRequest() {}
 
-	public RpcRequest(int requestId, String command, Object[] params) {
+	public RpcRequest(int requestId, int command, Object[] params) {
 		this.requestId = requestId;
 		this.command = command;
 		this.param = new RpcRequestParams(params);
@@ -32,11 +32,11 @@ public class RpcRequest {
 		this.requestId = requestId;
 	}
 
-	public String getCommand() {
+	public int getCommand() {
 		return command;
 	}
 
-	public void setCommand(String command) {
+	public void setCommand(int command) {
 		this.command = command;
 	}
 

@@ -14,5 +14,24 @@
 5.rpc
 
 
+TCP请求协议：
+
+1.客户端请求
+
+1）滚服模式请求协议
+length 		    4字节
+packageType 	1字节，0滚服包
+requestId 	    4字节，0推送给前端消息或者http请求，正数前端请求，负数内部请求
+command		    4字节
+data            n字节
+
+2）大区模式协议
+length 		    4字节
+packageType 	1字节，1_大区客户端包; 2_RPC请求包
+requestId 	    4字节，0推送给前端消息或者http请求，正数前端请求，负数内部请求
+command		    4字节
+serverType 	    4字节
+serverId 	    4字节
+data			n字节
 
 

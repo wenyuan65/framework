@@ -15,7 +15,6 @@ public class RpcClient implements RpcService {
 	private AtomicBoolean startFlags = new AtomicBoolean(false);
 	
 	public RpcClient(ConnectionFactory connectionFactory) {
-//		ConnectionFactory connectionFactory = new DefaultConnectionFactory(config, initializer);
 		connectionManager = new DefaultConnectionManager(connectionFactory);
 	}
 	
@@ -29,8 +28,8 @@ public class RpcClient implements RpcService {
 	
 	@Override
 	public void invokeSync(RpcRequest request, RpcResponse response, long timeoutMs) throws InterruptedException {
-		String addr = request.getHost() + ":" + request.getPort();
-		Connection connection = connectionManager.get(addr);
+		String address = request.getHost() + ":" + request.getPort();
+		Connection connection = connectionManager.get(address);
 		InvokeFuture future = connection.sendRequest(request, response);
 		
 		future.waitResponse(timeoutMs);

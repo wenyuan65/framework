@@ -1,4 +1,4 @@
-package com.wy.panda.jdbc.entity.memory.enhance;
+package com.wy.panda.jdbc.memory.enhance;
 
 import com.wy.panda.compile.JdkCompiler;
 import com.wy.panda.jdbc.entity.FieldEntity;

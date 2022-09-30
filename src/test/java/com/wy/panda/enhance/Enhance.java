@@ -1,10 +1,6 @@
 package com.wy.panda.enhance;
 
 import com.wy.panda.common.SystemProperty;
-import com.wy.panda.jdbc.entity.TableEntity;
-import com.wy.panda.jdbc.entity.memory.enhance.CGLIBDomainEnhancer;
-import com.wy.panda.jdbc.entity.memory.enhance.EnhanceUtil;
-import com.wy.panda.jdbc.name.DefaultNameStrategy;
 
 public class Enhance {
 

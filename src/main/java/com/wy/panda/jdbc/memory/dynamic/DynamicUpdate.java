@@ -1,4 +1,4 @@
-package com.wy.panda.jdbc.entity.memory.dynamic;
+package com.wy.panda.jdbc.memory.dynamic;
 
 import com.wy.panda.jdbc.entity.TableEntity;
 

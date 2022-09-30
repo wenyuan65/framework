@@ -1,8 +1,8 @@
-package com.wy.panda.jdbc.entity.memory.enhance;
+package com.wy.panda.jdbc.memory.enhance;
 
 import com.wy.panda.common.SystemProperty;
 import com.wy.panda.jdbc.entity.TableEntity;
-import com.wy.panda.jdbc.entity.memory.dynamic.DynamicUpdate;
+import com.wy.panda.jdbc.memory.dynamic.DynamicUpdate;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package com.wy.panda.jdbc.entity.memory;
+package com.wy.panda.jdbc.memory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sql.DataSource;
 
-import com.wy.panda.jdbc.entity.memory.dynamic.DynamicUpdate;
+import com.wy.panda.jdbc.memory.dynamic.DynamicUpdate;
 
 import com.wy.panda.concurrent.ScheduledThread;
 import com.wy.panda.jdbc.common.SQLOption;

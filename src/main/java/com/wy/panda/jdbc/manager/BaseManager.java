@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.InitializingBean;
 
 import com.wy.panda.jdbc.dao.BaseDao;
-import com.wy.panda.jdbc.entity.memory.AsyncSQLManager;
-import com.wy.panda.jdbc.entity.memory.MemoryTable;
+import com.wy.panda.jdbc.memory.AsyncSQLManager;
+import com.wy.panda.jdbc.memory.MemoryTable;
 import com.wy.panda.log.Logger;
 import com.wy.panda.log.LoggerFactory;
 

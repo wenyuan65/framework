@@ -1,11 +1,14 @@
 package com.wy.panda.annotation;
 
+import com.wy.panda.mvc.annotation.Action;
 import com.wy.panda.mvc.annotation.CommandMarker;
+import com.wy.panda.rpc.RpcManager;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+@Action
 public class PlayerAction {
 
     @Command(Cmd.Player_getPlayerList)
@@ -16,6 +19,15 @@ public class PlayerAction {
     @Command(Cmd.Player_getPlayerInfo)
     public void getPlayerInfo() {
 
+    }
+
+    @Command(Cmd.Rpc_getPlayerFriends)
+    public Integer getPlayerFriends(int playerId) {
+        return 0;
+    }
+
+    public <T> T sendRpc(Cmd cmd, int playerId) {
+        return (T)RpcManager.getInstance().send(cmd.getCode(), "127.0.0.1", 8080, playerId);
     }
 
     public static void main(String[] args) {

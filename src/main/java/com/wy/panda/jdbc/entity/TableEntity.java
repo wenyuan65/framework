@@ -15,7 +15,6 @@ import java.util.Set;
 
 import com.wy.panda.common.JdbcUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.wy.panda.common.ArraysUtil;
 import com.wy.panda.common.DateUtil;
@@ -24,7 +23,7 @@ import com.wy.panda.jdbc.annotation.Id;
 import com.wy.panda.jdbc.annotation.Index;
 import com.wy.panda.jdbc.annotation.Indexes;
 import com.wy.panda.jdbc.common.JdbcConstants;
-import com.wy.panda.jdbc.entity.memory.enhance.EnhanceUtil;
+import com.wy.panda.jdbc.memory.enhance.EnhanceUtil;
 import com.wy.panda.jdbc.name.NameStrategy;
 import com.wy.panda.log.Logger;
 import com.wy.panda.log.LoggerFactory;
