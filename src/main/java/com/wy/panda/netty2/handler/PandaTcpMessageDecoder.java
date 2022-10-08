@@ -14,7 +14,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
  * packageType 	1字节，0滚服包
  * requestId 	4字节，0推送给前端消息或者http请求，正数前端请求，负数内部请求
  * command		32字节
- * data			n字节
+ *
  * 
  * @author wenyuan
  */
@@ -29,11 +29,13 @@ public class PandaTcpMessageDecoder extends ByteToMessageDecoder {
 		
 		ByteBuf packBuf = in.readBytes(dataLen + 4); 
 		int length = packBuf.readInt();
-		int packageType = (int)packBuf.readByte();
+		int packageType = packBuf.readByte();
 		int requestId = packBuf.readInt();
-		PackMessage packMsg = new PackMessage(length, packageType, requestId, packBuf);
+		int command = packBuf.readInt();
+
+		PackMessage packMsg = new PackMessage(length, packageType, requestId, command, packBuf);
 		
 		out.add(packMsg);
 	}
-	
+
 }

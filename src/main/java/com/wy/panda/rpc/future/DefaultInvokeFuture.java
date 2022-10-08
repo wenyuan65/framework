@@ -1,19 +1,20 @@
 package com.wy.panda.rpc.future;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import com.wy.panda.rpc.Callback;
 import com.wy.panda.rpc.RpcRequest;
 import com.wy.panda.rpc.RpcResponse;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultInvokeFuture implements InvokeFuture {
 	
 	private CountDownLatch countDownLatch = new CountDownLatch(1);
 	private RpcRequest request;
 	private RpcResponse response;
-	private InvokeCallback callback;
+	private Callback callback;
 	
-	public DefaultInvokeFuture(RpcRequest request, RpcResponse response, InvokeCallback callback) {
+	public DefaultInvokeFuture(RpcRequest request, RpcResponse response, Callback callback) {
 		this.request = request;
 		this.response = response;
 		this.callback = callback;
@@ -53,9 +54,9 @@ public class DefaultInvokeFuture implements InvokeFuture {
 	}
 
 	@Override
-	public void executeInvokeCallback() {
+	public void executeCallback() {
 		if (callback != null) {
-			callback.run();
+			callback.invoke(request, response);
 		}
 	}
 
@@ -67,11 +68,6 @@ public class DefaultInvokeFuture implements InvokeFuture {
 	@Override
 	public Throwable getCause() {
 		return response.getCause();
-	}
-
-	@Override
-	public InvokeCallback getInvokeCallback() {
-		return callback;
 	}
 
 }

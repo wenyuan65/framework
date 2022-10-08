@@ -1,15 +1,14 @@
 package com.wy.panda.rpc.handler;
 
-import java.util.List;
-
-import com.wy.panda.protocol.Protocols;
+import com.wy.panda.netty2.common.PackType;
 import com.wy.panda.rpc.RpcResponse;
 import com.wy.panda.rpc.serilizable.Serializable;
 import com.wy.panda.util.ByteUtils;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
+
+import java.util.List;
 
 public class RpcResponseCodec extends ByteToMessageCodec<RpcResponse> {
 	
@@ -31,7 +30,7 @@ public class RpcResponseCodec extends ByteToMessageCodec<RpcResponse> {
 		int len = 4 + 1 + 4 + content.length;
 		ByteBuf buffer = ctx.alloc().buffer(len);
 		buffer.writeInt(len);
-		buffer.writeByte(Protocols.RPC.getProtocolType()); // 协议类型
+		buffer.writeByte(PackType.RpcRequest.getPackType());
 		buffer.writeInt(msg.getRequestId());
 		buffer.writeBytes(content);
 		
@@ -50,7 +49,7 @@ public class RpcResponseCodec extends ByteToMessageCodec<RpcResponse> {
 		}
 		
 		byte protocolType = in.getByte(readerIndex + 4);
-		if (protocolType != Protocols.RPC.getProtocolType()) {
+		if (protocolType != PackType.RpcRequest.getPackType()) {
 			return;
 		}
 		

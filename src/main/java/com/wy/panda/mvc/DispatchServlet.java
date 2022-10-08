@@ -6,6 +6,7 @@ import com.wy.panda.log.Logger;
 import com.wy.panda.log.LoggerFactory;
 import com.wy.panda.mvc.annotation.Action;
 import com.wy.panda.mvc.annotation.CommandMarker;
+import com.wy.panda.mvc.annotation.RpcCommandMarker;
 import com.wy.panda.mvc.config.DispatchServletConfig;
 import com.wy.panda.mvc.domain.Request;
 import com.wy.panda.mvc.domain.Response;
@@ -13,11 +14,14 @@ import com.wy.panda.mvc.intercept.Interceptor;
 import com.wy.panda.mvc.result.ByteResult;
 import com.wy.panda.mvc.result.NoActionResult;
 import com.wy.panda.mvc.result.Result;
+import com.wy.panda.rpc.RpcRequest;
+import com.wy.panda.rpc.RpcResponse;
 import com.wy.panda.spring.ObjectFactory;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -32,10 +36,9 @@ public class DispatchServlet {
 	/** 执行环境 */
 	private ServletContext servletContext;
 	
-	/** 命令存储 */
 	private Map<String, Invoker> actionMap = new HashMap<>();
-	/** 命令存储 */
 	private Map<Integer, Invoker> codeMap = new HashMap<>();
+	private Map<Integer, RpcInvoker> rpcInvokerMap = new HashMap<>();
 
 	/** 默认的返回 */
 	private ByteResult defaultResult = new ByteResult(null);
@@ -90,55 +93,104 @@ public class DispatchServlet {
 		Object obj = null;
 		Method[] methods = clazz.getDeclaredMethods();
 		for (Method method : methods) {
-			Annotation[] annotations = method.getDeclaredAnnotations();
-			for (Annotation annotation : annotations) {
-				Class<? extends Annotation> annotationType = annotation.annotationType();
-				CommandMarker commandMarkerAnnotation = annotationType.getAnnotation(CommandMarker.class);
-				if (commandMarkerAnnotation == null) {
-					continue;
-				}
-
-				Method value = annotationType.getDeclaredMethod("value");
-				Object result = value.invoke(annotation); // cmd
-
-				Field codeField = result.getClass().getDeclaredField(commandMarkerAnnotation.code());
-				Field actionField = result.getClass().getDeclaredField(commandMarkerAnnotation.action());
-				codeField.setAccessible(true);
-				actionField.setAccessible(true);
-
-				int code = (int)codeField.get(result);
-				String commandName = (String)actionField.get(result);
-
-				if (StringUtils.isBlank(commandName)) {
-					String msg = String.format("command cannot be blank for %s.%s()", clazz.getName(), method.getName());
-					throw new IllegalParametersException(msg);
-				}
-				if (actionMap.containsKey(commandName)) {
-					String msg = String.format("command cannot be dumplicated for %s in %s.%s()", commandName, clazz.getName(), method.getName());
-					throw new IllegalParametersException(msg);
-				}
-				if (codeMap.containsKey(code)) {
-					String msg = String.format("command cannot be dumplicated for %s in %s.%s()", result.getClass().getSimpleName(), clazz.getName(), method.getName());
-					throw new IllegalParametersException(msg);
-				}
-
-				// 创建action实例
-				if (obj == null) {
-					obj = ObjectFactory.getObject(clazz, null);
-				}
-
-				Invoker invoker = new Invoker(obj, method);
-				invoker.init();
-				actionMap.put(commandName, invoker);
-				codeMap.put(code, invoker);
-
-				log.info("init command:{}, handler:{}#{}", commandName, clazz.getSimpleName(), method.getName());
-
-				break;
-			}
+			obj = parseCommand(clazz, method, obj);
+			obj = parseRpcCommand(clazz, method, obj);
 		}
 	}
-	
+
+	private Object parseCommand(Class<?> clazz, Method method, Object obj) throws Exception {
+		Annotation[] annotations = method.getDeclaredAnnotations();
+		for (Annotation annotation : annotations) {
+			Class<? extends Annotation> annotationType = annotation.annotationType();
+			CommandMarker commandMarkerAnnotation = annotationType.getAnnotation(CommandMarker.class);
+			if (commandMarkerAnnotation == null) {
+				continue;
+			}
+
+			Method value = annotationType.getDeclaredMethod("value");
+			Object result = value.invoke(annotation); // cmd
+
+			Field codeField = result.getClass().getDeclaredField(commandMarkerAnnotation.code());
+			Field actionField = result.getClass().getDeclaredField(commandMarkerAnnotation.action());
+			codeField.setAccessible(true);
+			actionField.setAccessible(true);
+
+			int code = (int)codeField.get(result);
+			String commandName = (String)actionField.get(result);
+
+			if (StringUtils.isBlank(commandName)) {
+				String msg = String.format("command cannot be blank for %s.%s()", clazz.getName(), method.getName());
+				throw new IllegalParametersException(msg);
+			}
+			if (actionMap.containsKey(commandName)) {
+				String msg = String.format("command cannot be dumplicated for %s in %s.%s()", commandName, clazz.getName(), method.getName());
+				throw new IllegalParametersException(msg);
+			}
+			if (codeMap.containsKey(code)) {
+				String msg = String.format("command cannot be dumplicated for %s in %s.%s()", result.getClass().getSimpleName(), clazz.getName(), method.getName());
+				throw new IllegalParametersException(msg);
+			}
+
+			// 创建action实例
+			if (obj == null) {
+				obj = ObjectFactory.getObject(clazz, null);
+			}
+
+			Invoker invoker = new Invoker(obj, method);
+			invoker.init();
+			actionMap.put(commandName, invoker);
+			codeMap.put(code, invoker);
+
+			log.info("init command:{}, handler:{}#{}", commandName, clazz.getSimpleName(), method.getName());
+
+			break;
+		}
+
+		return obj;
+	}
+
+	private Object parseRpcCommand(Class<?> clazz, Method method, Object obj) throws Exception {
+		Annotation[] annotations = method.getDeclaredAnnotations();
+		for (Annotation annotation : annotations) {
+			Class<? extends Annotation> annotationType = annotation.annotationType();
+			RpcCommandMarker commandMarkerAnnotation = annotationType.getAnnotation(RpcCommandMarker.class);
+			if (commandMarkerAnnotation == null) {
+				continue;
+			}
+
+			Method value = annotationType.getDeclaredMethod("value");
+			Object result = value.invoke(annotation); // cmd
+
+			Field codeField = result.getClass().getDeclaredField(commandMarkerAnnotation.code());
+			Field actionField = result.getClass().getDeclaredField(commandMarkerAnnotation.action());
+			codeField.setAccessible(true);
+			actionField.setAccessible(true);
+
+			int code = (int)codeField.get(result);
+			String commandName = (String)actionField.get(result);
+
+			if (rpcInvokerMap.containsKey(code)) {
+				String msg = String.format("command cannot be dumplicated for %s in %s.%s()", result.getClass().getSimpleName(), clazz.getName(), method.getName());
+				throw new IllegalParametersException(msg);
+			}
+
+			// 创建action实例
+			if (obj == null) {
+				obj = ObjectFactory.getObject(clazz, null);
+			}
+
+			RpcInvoker invoker = new RpcInvoker(obj, method);
+			invoker.init();
+			rpcInvokerMap.put(code, invoker);
+
+			log.info("init command:{}, handler:{}#{}", commandName, clazz.getSimpleName(), method.getName());
+
+			break;
+		}
+
+		return obj;
+	}
+
 	private void initInterceptors() {
 		if (interceptors.size() <= 1) {
 			return;
@@ -175,6 +227,22 @@ public class DispatchServlet {
 		} else {
 			result = new NoActionResult(request.getCommand());
 			result.render(request, response);
+		}
+	}
+
+	public void dispatch(RpcRequest request, RpcResponse response) {
+		RpcInvoker invoker = rpcInvokerMap.get(request.getCommand());
+		if (invoker == null) {
+			return;
+		}
+
+		Object result = null;
+		try {
+			result = invoker.invoke(request);
+			response.setResult(result);
+		} catch (Throwable e) {
+			response.setCause(e);
+			log.error("invoke rpc error", e);
 		}
 	}
 	

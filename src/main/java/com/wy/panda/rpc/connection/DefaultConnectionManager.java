@@ -1,15 +1,13 @@
 package com.wy.panda.rpc.connection;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.wy.panda.log.Logger;
 import com.wy.panda.log.LoggerFactory;
 
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
- * TODO: 支持Connection pool
+ * TODO: 支持Connection池管理
  * @author wenyuan
  */
 public class DefaultConnectionManager implements ConnectionManager {
@@ -46,7 +44,9 @@ public class DefaultConnectionManager implements ConnectionManager {
 		if (connection == null) {
 			try {
 				connection = this.create(addr, 1000);
-				return connectionPool.putIfAbsent(addr, connection);
+				Connection absentConnection = connectionPool.putIfAbsent(addr, connection);
+
+				return absentConnection != null ? absentConnection : connection;
 			} catch (Exception e) {
 				log.error("create connection error", e);
 			}
@@ -61,42 +61,76 @@ public class DefaultConnectionManager implements ConnectionManager {
 
 	@Override
 	public Map<String, List<Connection>> getAll() {
-		return null;
+		Map<String, List<Connection>> connections = new HashMap<>(connectionPool.size());
+		for (Map.Entry<String, Connection> entry : connectionPool.entrySet()) {
+			List<Connection> list = new ArrayList<>();
+			list.add(entry.getValue());
+			connections.put(entry.getKey(), list);
+		}
+
+		return connections;
 	}
 
 	@Override
 	public void remove(Connection connection) {
-		
+		String address = null;
+		for (Map.Entry<String, Connection> entry : connectionPool.entrySet()) {
+			if (entry.getValue() == connection) {
+				address = entry.getKey();
+				break;
+			}
+		}
+
+		if (address != null) {
+			remove(connection, address);
+		}
 	}
 
 	@Override
 	public void remove(Connection connection, String addr) {
-		
+		Connection connection1 = connectionPool.get(addr);
+		if (connection == connection1) {
+			Connection connection2 = connectionPool.remove(addr);
+			if (connection2 == null) {
+				connection2.close();
+			}
+		}
 	}
 
 	@Override
 	public void remove(String addr) {
-		
+		Connection connection = connectionPool.remove(addr);
+		if (connection != null) {
+			connection.close();
+		}
 	}
 
 	@Override
 	public void removeAll() {
-		
+		List<Connection> list = new ArrayList<>(connectionPool.values());
+		connectionPool.clear();
+
+		for (Connection connection : list) {
+			connection.close();
+		}
 	}
 
 	@Override
 	public void check(Connection connection) throws Exception {
-		
+		if (!connection.checkActive()) {
+			throw new RuntimeException("not active connection");
+		}
 	}
 
 	@Override
 	public int count(String addr) {
-		return 0;
+		return connectionPool.contains(addr) ? 1 : 0;
 	}
 
 	@Override
 	public Connection create(String address, int connectTimeout) throws Exception {
-		return null;
+		String[] hostPort = address.split(":");
+		return create(hostPort[0], Integer.parseInt(hostPort[1]), connectTimeout);
 	}
 
 	@Override
@@ -106,12 +140,12 @@ public class DefaultConnectionManager implements ConnectionManager {
 
 	@Override
 	public Connection getOrCreateConnectionIfAbsent(String addr) {
-		return null;
+		return get(addr);
 	}
 
 	@Override
 	public Connection getOrCreateConnectionIfAbsent(String ip, int port) {
-		return null;
+		return get(ip + ":" + port);
 	}
 	
 }

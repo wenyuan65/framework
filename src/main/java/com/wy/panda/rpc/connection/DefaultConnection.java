@@ -1,5 +1,6 @@
 package com.wy.panda.rpc.connection;
 
+import com.wy.panda.rpc.Callback;
 import com.wy.panda.rpc.RpcRequest;
 import com.wy.panda.rpc.RpcResponse;
 import com.wy.panda.rpc.future.InvokeFuture;
@@ -21,8 +22,8 @@ public class DefaultConnection extends AbstractConnection {
 	}
 
 	@Override
-	public InvokeFuture sendRequest(RpcRequest request, RpcResponse response) {
-		final InvokeFuture future = createInvokeFuture(request, response, null);
+	public InvokeFuture sendRequest(RpcRequest request, RpcResponse response, Callback callback) {
+		final InvokeFuture future = createInvokeFuture(request, response, callback);
 		addInvokeFuture(future);
 		try {
 			channel.writeAndFlush(request).addListener(new ChannelFutureListener() {

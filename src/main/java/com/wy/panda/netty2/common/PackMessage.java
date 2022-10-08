@@ -7,17 +7,18 @@ public class PackMessage {
 	private int length;
 	private int packageType;
 	private int requestId;
+	private int command;
 	private ByteBuf packBuf;
 	
 	private int serverType;
 	private int serverId;
-	private String command;
 	private byte[] data;
 	
-	public PackMessage(int length, int packageType, int requestId, ByteBuf packBuf) {
+	public PackMessage(int length, int packageType, int requestId, int command, ByteBuf packBuf) {
 		this.length = length;
 		this.packageType = packageType;
 		this.requestId = requestId;
+		this.command = command;
 		this.packBuf = packBuf;
 	}
 
@@ -69,14 +70,6 @@ public class PackMessage {
 		this.serverId = serverId;
 	}
 
-	public String getCommand() {
-		return command;
-	}
-
-	public void setCommand(String command) {
-		this.command = command;
-	}
-
 	public byte[] getData() {
 		return data;
 	}
@@ -84,5 +77,12 @@ public class PackMessage {
 	public void setData(byte[] data) {
 		this.data = data;
 	}
-	
+
+	public int getCommand() {
+		return command;
+	}
+
+	public void setCommand(int command) {
+		this.command = command;
+	}
 }

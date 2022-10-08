@@ -21,7 +21,7 @@ public class PlayerAction {
 
     }
 
-    @Command(Cmd.Rpc_getPlayerFriends)
+    @RpcCommand(RpcCmd.getPlayerFriends)
     public Integer getPlayerFriends(int playerId) {
         return 0;
     }

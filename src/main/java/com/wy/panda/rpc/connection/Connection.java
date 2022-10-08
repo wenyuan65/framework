@@ -1,12 +1,13 @@
 package com.wy.panda.rpc.connection;
 
+import com.wy.panda.rpc.Callback;
 import com.wy.panda.rpc.RpcRequest;
 import com.wy.panda.rpc.RpcResponse;
 import com.wy.panda.rpc.future.InvokeFuture;
 
 public interface Connection {
 	
-	public InvokeFuture sendRequest(RpcRequest request, RpcResponse response);
+	public InvokeFuture sendRequest(RpcRequest request, RpcResponse response, Callback callback);
 	
 	public void handleResponse(RpcResponse response);
 	

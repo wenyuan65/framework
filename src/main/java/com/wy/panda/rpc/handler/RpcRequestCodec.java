@@ -1,17 +1,15 @@
 package com.wy.panda.rpc.handler;
 
-import java.util.List;
-
-import com.wy.panda.common.TextUtil;
-import com.wy.panda.protocol.Protocols;
+import com.wy.panda.netty2.common.PackType;
 import com.wy.panda.rpc.RpcRequest;
 import com.wy.panda.rpc.RpcRequestParams;
 import com.wy.panda.rpc.serilizable.Serializable;
 import com.wy.panda.util.ByteUtils;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageCodec;
+
+import java.util.List;
 
 public class RpcRequestCodec extends ByteToMessageCodec<RpcRequest>{
 
@@ -30,17 +28,13 @@ public class RpcRequestCodec extends ByteToMessageCodec<RpcRequest>{
 			content = ByteUtils.compress(content);
 		}
 		
-		byte[] commandBuf = new byte[32];
-		byte[] command = TextUtil.toByte(msg.getCommand());
-		
-		System.arraycopy(command, 0, commandBuf, 0, Math.min(commandBuf.length, command.length));
-		
-		int len = 41 + content.length;// 4 + 1 + 4 + 32 + content.length
+		int command1 = msg.getCommand();
+		int len = 13 + content.length;// 4 + 1 + 4 + 4 + content.length
 		ByteBuf buffer = ctx.alloc().buffer(len);
 		buffer.writeInt(len);
-		buffer.writeByte(Protocols.RPC.getProtocolType()); // 协议类型
+		buffer.writeByte(PackType.RpcRequest.getPackType()); // 协议类型
 		buffer.writeInt(msg.getRequestId());
-		buffer.writeBytes(commandBuf);
+		buffer.writeInt(command1);
 		buffer.writeBytes(content);
 		
 		// 发送
@@ -52,24 +46,22 @@ public class RpcRequestCodec extends ByteToMessageCodec<RpcRequest>{
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 		int readerIndex = in.readerIndex();
-		int len = in.getInt(readerIndex); // 4 + 1 + 4 + 32
-		if (in.readableBytes() < len || len < 41) {
+		int len = in.getInt(readerIndex); // 4 + 1 + 4 + 4
+		if (in.readableBytes() < len || len < 13) {
 			return;
 		}
 		
 		byte protocolType = in.getByte(readerIndex + 4);
-		if (protocolType != Protocols.RPC.getProtocolType()) {
+		if (protocolType != PackType.RpcRequest.getPackType()) {
 			return;
 		}
 		
 		in.skipBytes(5);
-		byte[] commandBuf = new byte[32];
 		byte[] content = new byte[len - 41];
 		int requestId = in.readInt();
-		in.readBytes(commandBuf);
+		int command = in.readInt();
 		in.readBytes(content);
 		
-		String command = TextUtil.toString(commandBuf).trim();
 		if (compress) {
 			content = ByteUtils.decompress(content);
 		}

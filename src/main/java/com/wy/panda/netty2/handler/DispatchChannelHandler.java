@@ -5,6 +5,8 @@ import com.wy.panda.log.LoggerFactory;
 import com.wy.panda.mvc.DispatchServlet;
 import com.wy.panda.mvc.domain.Request;
 import com.wy.panda.mvc.domain.Response;
+import com.wy.panda.rpc.RpcRequest;
+import com.wy.panda.rpc.RpcResponse;
 import com.wy.panda.session.Session;
 import com.wy.panda.session.SessionManager;
 
@@ -61,6 +63,15 @@ public class DispatchChannelHandler extends ChannelInboundHandlerAdapter {
 			}
 			
 			servlet.dispatch(request, response);
+		} else if (msg instanceof RpcRequest) {
+			RpcRequest request = (RpcRequest)msg;
+			RpcResponse response = new RpcResponse(request.getRequestId());
+
+			servlet.dispatch(request, response);
+
+			if (response.getResult() != null) {
+				ctx.writeAndFlush(response);
+			}
 		}
 	}
 

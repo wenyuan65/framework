@@ -17,6 +17,8 @@ public class ServerConfig {
 	
 	/** 接受的数据是否启用压缩 */
 	private boolean compress = false;
+	/** 接受的rpc请求数据是否启用压缩 */
+	private boolean rpcCompress = false;
 	/** servlet扫描路径 */
 	private String scanPath = "";
 	
@@ -77,6 +79,12 @@ public class ServerConfig {
 	}
 	public void setCompress(boolean compress) {
 		this.compress = compress;
+	}
+	public boolean isRpcCompress() {
+		return rpcCompress;
+	}
+	public void setRpcCompress(boolean rpcCompress) {
+		this.rpcCompress = rpcCompress;
 	}
 	public String getScanPath() {
 		return scanPath;

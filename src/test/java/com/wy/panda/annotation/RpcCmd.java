@@ -1,15 +1,14 @@
 package com.wy.panda.annotation;
 
-public enum Cmd {
+public enum RpcCmd {
 
-    Player_getPlayerList(10001, "player@getPlayerList"),
-    Player_getPlayerInfo(10002, "player@getPlayerInfo"),
+    getPlayerFriends(90101, "rpc_friends@getPlayerFriends"),
     ;
 
     private int code;
     private String command;
 
-    Cmd(int code, String command) {
+    RpcCmd(int code, String command) {
         this.code = code;
         this.command = command;
     }
@@ -21,5 +20,4 @@ public enum Cmd {
     public String getCommand() {
         return command;
     }
-
 }

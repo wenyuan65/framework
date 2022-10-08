@@ -1,15 +1,15 @@
 package com.wy.panda.rpc.connection;
 
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.alibaba.fastjson.JSON;
 import com.wy.panda.log.Logger;
 import com.wy.panda.log.LoggerFactory;
+import com.wy.panda.rpc.Callback;
 import com.wy.panda.rpc.RpcRequest;
 import com.wy.panda.rpc.RpcResponse;
 import com.wy.panda.rpc.future.DefaultInvokeFuture;
-import com.wy.panda.rpc.future.InvokeCallback;
 import com.wy.panda.rpc.future.InvokeFuture;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractConnection implements Connection {
 
@@ -17,7 +17,7 @@ public abstract class AbstractConnection implements Connection {
 	
 	private ConcurrentHashMap<Integer, InvokeFuture> invokeFutureMap = new ConcurrentHashMap<>();
 	
-	protected InvokeFuture createInvokeFuture(RpcRequest request, RpcResponse response, InvokeCallback callback) {
+	protected InvokeFuture createInvokeFuture(RpcRequest request, RpcResponse response, Callback callback) {
 		return new DefaultInvokeFuture(request, response, callback);
 	}
 	
@@ -29,8 +29,10 @@ public abstract class AbstractConnection implements Connection {
 		if (future != null) {
 			future.setCause(response.getCause());
 			future.putResponse(response.getResult());
+			// 回调
+			future.executeCallback();
 		}
-		
+
 		if (log.isDebugEnabled()) {
 			log.debug("handle rpc response, requestId:{}, content:{}", requestId, JSON.toJSONString(response.getResult()));
 		}

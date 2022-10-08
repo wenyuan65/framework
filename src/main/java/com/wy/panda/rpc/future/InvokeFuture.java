@@ -14,12 +14,10 @@ public interface InvokeFuture {
 	
 	public int getRequestId();
 	
-	public void executeInvokeCallback();
+	public void executeCallback();
 	
 	public void setCause(Throwable t);
 	
 	public Throwable getCause();
-	
-	InvokeCallback getInvokeCallback();
-	
+
 }

@@ -10,6 +10,4 @@ public interface RpcService {
 	
 	void invokeOneway(RpcRequest request);
 	
-	void invokeOneway(RpcRequest request, long timeoutMs);
-	
 }

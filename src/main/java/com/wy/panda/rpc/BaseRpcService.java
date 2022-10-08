@@ -22,9 +22,4 @@ public abstract class BaseRpcService implements RpcService{
 		
 	}
 
-	@Override
-	public void invokeOneway(RpcRequest request, long timeoutMs) {
-		
-	}
-	
 }
