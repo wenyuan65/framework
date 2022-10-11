@@ -30,9 +30,9 @@ public abstract class BaseManager<K, V> extends BaseDao<K, V> implements Manager
 	
 	protected abstract void doAfterPropertiesSet();
 	
-	public abstract void loadPlayerDataByPlayerId(int playerId);
+	public abstract void loadPlayerData(int playerId);
 	
-	public abstract void clearPlayerDataByPlayerId(int playerId);
+	public abstract void clearPlayerData(int playerId);
 	
 	@Override
 	public void memoryCreate(V obj) {
