@@ -31,6 +31,7 @@
 		<ch.qos.logback.version>1.3.0-alpha4</ch.qos.logback.version>
 		<kryo.version>5.0.0-RC4</kryo.version>
 		<httpclient.version>4.5.12</httpclient.version>
+		<redissn.version>3.16.8</redissn.version>
 		<dom4j.version>2.1.1</dom4j.version>
 		<quartz.version>2.3.2</quartz.version>
 		<junit.version>3.8.1</junit.version>
@@ -140,6 +141,13 @@
 			<artifactId>netty-all</artifactId>
 			<version>${netty.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.redisson</groupId>
+			<artifactId>redisson</artifactId>
+			<version>${redissn.version}</version>
+		</dependency>
+
 		<!-- <dependency> <groupId>asm</groupId> <artifactId>asm</artifactId> <version>${asm.version}</version> 
 			</dependency> <dependency> <groupId>org.ow2.asm</groupId> <artifactId>asm</artifactId> 
 			<version>${asm.version}</version> </dependency> -->
