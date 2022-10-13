@@ -92,7 +92,7 @@ public class JdbcUtils {
 		return null;
 	}
 
-	public static void close(Connection connection, PreparedStatement ps, ResultSet rs) {
+	public static void close(Connection connection, Statement ps, ResultSet rs) {
 		if (rs != null) {
 			try {
 				rs.close();
@@ -103,17 +103,7 @@ public class JdbcUtils {
 		close(connection, ps);
 	}
 
-	public static void close(ResultSet rs) {
-		if (rs != null) {
-			try {
-				rs.close();
-			} catch (SQLException e) {
-				log.error("关闭数据库出错", e);
-			}
-		}
-	}
-
-	public static void close(Connection connection, PreparedStatement ps) {
+	public static void close(Connection connection, Statement ps) {
 		if (ps != null) {
 			try {
 				ps.close();
@@ -134,5 +124,15 @@ public class JdbcUtils {
 			}
 		}
 	}
-	
+
+	public static void close(ResultSet rs) {
+		if (rs != null) {
+			try {
+				rs.close();
+			} catch (SQLException e) {
+				log.error("关闭数据库出错", e);
+			}
+		}
+	}
+
 }

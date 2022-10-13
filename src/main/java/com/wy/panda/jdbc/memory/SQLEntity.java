@@ -12,8 +12,10 @@ public class SQLEntity {
 	private int count;
 	
 	private String tableName;
+
+	private long hashCode;
 	
-	public SQLEntity(SQLOption option, String sql, int count, String tableName) {
+	public SQLEntity(SQLOption option, String sql, int count, String tableName, long hashCode) {
 		super();
 		this.option = option;
 		this.sql = sql;
@@ -52,5 +54,12 @@ public class SQLEntity {
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
 	}
-	
+
+	public long getHashCode() {
+		return hashCode;
+	}
+
+	public void setHashCode(long hashCode) {
+		this.hashCode = hashCode;
+	}
 }

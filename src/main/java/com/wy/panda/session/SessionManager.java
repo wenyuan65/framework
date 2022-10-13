@@ -40,7 +40,7 @@ public class SessionManager {
 	 * 启动session管理
 	 */
 	public void start() {
-		sessionManagerTicker = new ScheduledThread("session-ticker", 10000, new SessionCheckTask());
+		sessionManagerTicker = new ScheduledThread("session-ticker", new SessionCheckTask(), 10000);
 		sessionManagerTicker.start();
 	}
 	

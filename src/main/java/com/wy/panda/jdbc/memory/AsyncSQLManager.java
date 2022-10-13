@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sql.DataSource;
 
+import com.wy.panda.common.JdbcUtils;
 import com.wy.panda.jdbc.memory.dynamic.DynamicUpdate;
 
 import com.wy.panda.concurrent.ScheduledThread;
@@ -29,26 +30,19 @@ public class AsyncSQLManager {
 		return instance;
 	}
 	
-	/** 
-	 * 工作状态，
-	 * 0未初始化，
-	 * 1已经初始化，
-	 * 2已经启动，
-	 * 3可接受，不可入库，例如数据库连接异常， 
-	 * 4不可接受，可入库，例如进程停止，等待退出，
-	 * 6已经退出 
-	 **/
 	private AtomicInteger state = new AtomicInteger(0);
 	/** 数据源 */
 	private DataSource dataSource;
 	/** 阻塞队列 */
 	private BlockingQueue<SQLEntity> queue = new LinkedBlockingQueue<>();
 	
-	/** 定时线程 */
+	/** SQL接收线程 */
 	private ScheduledThread thread = null;
+	/** SQL执行线程 */
+	private ScheduledThread[] workers = null;
 	
 	/** 一个批处理的上限 */
-	private static final int BATCH_SIZE_THRESHOLD = 2000;
+	private static final int BATCH_SIZE_THRESHOLD = 64;
 	
 	public void init(DataSource dataSource) {
 		if (isStarted()) {
@@ -56,39 +50,44 @@ public class AsyncSQLManager {
 		}
 		
 		this.dataSource = dataSource;
-		
-		FlushTask[] workers = new FlushTask[4];
-		for (int i = 0; i < workers.length; i++) {
-			workers[i] = new FlushTask();
+
+		int workerNum = 4;
+		FlushTask[] workerTasks = new FlushTask[workerNum];
+		for (int i = 0; i < workerTasks.length; i++) {
+			workerTasks[i] = new FlushTask();
 		}
 		
-		TaskDispatcher dispatcher = new TaskDispatcher(workers);
-		thread = new ScheduledThread("AsyncSQLDispatcher", 100, dispatcher);
+		TaskDispatcher dispatcher = new TaskDispatcher(workerTasks);
+		thread = new ScheduledThread("AsyncSQLDispatcher", dispatcher, 100);
 		thread.start();
 		
-		int intevel = 200;
+		int interval = 200;
+		workers = new ScheduledThread[workerTasks.length];
 		for (int i = 0; i < workers.length; i++) {
-			ScheduledThread worker = new ScheduledThread("AsyncSQLFlusher_" + (i + 1), 
-					intevel, workers[i]);
-			worker.start();
-		} 
+			workers[i]  = new ScheduledThread("AsyncSQLWorker_" + i, workerTasks[i], interval);
+		}
+		for (int i = 0; i < workers.length; i++) {
+			workers[i].start();
+		}
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void addSQLEntity(SQLOption op, TableEntity tableEntity, int count, Object... args) {
 		String tableName = tableEntity.getTableName();
+		long currentThreadId = Thread.currentThread().getId();
+
 		try {
 			switch (op) {
 			case INSERT: {
 				String insertSQL = tableEntity.fillInsertSQLParams(args[0]);
 				log.info("#{}#{}#{}#{}", tableName, count, insertSQL, 1);
-				queue.add(new SQLEntity(op, insertSQL, count, tableName));
+				queue.add(new SQLEntity(op, insertSQL, count, tableName, currentThreadId));
 			}
 				break;
 			case DELETE: {
 				String deleteSQL = tableEntity.fillDeleteSQLParams(args[0]);
 				log.info("#{}#{}#{}#{}", tableName, count, deleteSQL, 1);
-				queue.add(new SQLEntity(op, deleteSQL, count, tableName));
+				queue.add(new SQLEntity(op, deleteSQL, count, tableName, currentThreadId));
 			}
 				break;
 			case UPDATE: {
@@ -98,12 +97,12 @@ public class AsyncSQLManager {
 					log.info("#{}#{}#{}#{}", tableName, count, dynamicUpdateSQL, 0);
 				} else {
 					log.info("#{}#{}#{}#{}", tableName, count, dynamicUpdateSQL, 1);
-					queue.add(new SQLEntity(op, dynamicUpdateSQL, count, tableName));
+					queue.add(new SQLEntity(op, dynamicUpdateSQL, count, tableName, currentThreadId));
 				}
 			}
 				break;
 			default:
-				throw new RuntimeException("unkow sql op type: " + op.name());
+				throw new RuntimeException("unknown sql op type: " + op.name());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -111,9 +110,9 @@ public class AsyncSQLManager {
 	}
 	
 	public void flush() {
-		
+
 	}
-	
+
 	public boolean isStarted() {
 		return state.get() >= 1;
 	}
@@ -121,7 +120,6 @@ public class AsyncSQLManager {
 	class TaskDispatcher implements Runnable {
 		
 		private FlushTask[] workers;
-		private int count = 0;
 
 		public TaskDispatcher(FlushTask[] workers) {
 			this.workers = workers;
@@ -129,15 +127,15 @@ public class AsyncSQLManager {
 
 		@Override
 		public void run() {
-			// FIXME：线程失败问题解决
-			SQLEntity entry = null;
-			try {
-				while ((entry = queue.poll()) != null) {
-					FlushTask worker = workers[count ++ % workers.length];
-					worker.dispatch(entry);
-				} 
-			} catch (Exception e) {
-				e.printStackTrace();
+			// 每次循环时，将queue中的当前存入的数据全部派发出去
+			while (queue.size() > 0) {
+				SQLEntity entry = queue.poll();
+				if (entry == null) {
+					break;
+				}
+
+				FlushTask worker = workers[Math.abs((int) (entry.getHashCode() % workers.length))];
+				worker.dispatch(entry);
 			}
 		}
 		
@@ -146,9 +144,7 @@ public class AsyncSQLManager {
 	class FlushTask implements Runnable {
 		
 		/** sql缓存池 */
-//		private DoubleBufferQueue<SQLEntity> queue = new DoubleBufferQueue<>(1024);
-//		private CopyOnWriteArrayList<SQLEntity> pendingQueue = new CopyOnWriteArrayList<>();
-		private LinkedBlockingQueue<SQLEntity> pendingQueue = new LinkedBlockingQueue<>(1024);
+		private LinkedBlockingQueue<SQLEntity> pendingQueue = new LinkedBlockingQueue<>();
 		
 		public void dispatch(SQLEntity sqlEntity) {
 			pendingQueue.add(sqlEntity);
@@ -156,21 +152,23 @@ public class AsyncSQLManager {
 		
 		@Override
 		public void run() {
-			// TODO: SQL不是顺序的执行
 			List<SQLEntity> list = new ArrayList<>();
-			SQLEntity sqlEntity = null;
-			int currSize = 0;
-			while ((sqlEntity = pendingQueue.poll()) != null && currSize < BATCH_SIZE_THRESHOLD) {
+			while (list.size() < BATCH_SIZE_THRESHOLD) {
+				SQLEntity sqlEntity = pendingQueue.poll();
+				if (sqlEntity == null) {
+					break;
+				}
+
 				list.add(sqlEntity);
-				currSize++;
 			}
-			if (currSize == 0) {
+			if (list.size() == 0) {
 				return;
 			}
-			
+
+			Connection connection = null;
 			Statement stmt = null;
 			try {
-				Connection connection = dataSource.getConnection();
+				connection = dataSource.getConnection();
 				stmt = connection.createStatement();
 				for (SQLEntity entity : list) {
 					stmt.addBatch(entity.getSql());
@@ -187,10 +185,7 @@ public class AsyncSQLManager {
 			} catch (SQLException e) {
 				log.error("FlushTask error", e);
 			} finally {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-				}
+				JdbcUtils.close(connection, stmt);
 			}
 		}
 		

@@ -1,23 +1,18 @@
 package com.wy.panda.config;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.wy.panda.concurrent.ScheduledThread;
 import com.wy.panda.log.Logger;
 import com.wy.panda.log.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 public class Configuration {
 	
@@ -56,13 +51,6 @@ public class Configuration {
 	/** 配置项为正则表达式的缓存 */
 	private static ConcurrentHashMap<String, Pattern> patternMap = new ConcurrentHashMap<>();
 	
-	static {
-		// 启动线程
-		configurationScanner = new ScheduledThread("Configuration-scanner", CHECK_MODIFIED_INTERVEL,
-				new ConfigurationScanTask());
-		configurationScanner.start();
-	}
-	
 	/**
 	 * 初始化通用配置文件
 	 * @param commonFileNameList
@@ -77,6 +65,10 @@ public class Configuration {
 		// 扫描文件
 		reloadConfig(CONFIG_PATH);
 		started = true;
+
+		// 配置文件监控线程
+		configurationScanner = new ScheduledThread("Configuration-scanner", new ConfigurationScanTask(), CHECK_MODIFIED_INTERVEL);
+		configurationScanner.start();
 	}
 	
 	/**
