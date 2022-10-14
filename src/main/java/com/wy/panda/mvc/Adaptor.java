@@ -2,12 +2,13 @@ package com.wy.panda.mvc;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import com.esotericsoftware.minlog.Log;
 import com.wy.panda.common.ReflactUtil;
 import com.wy.panda.exception.IllegalParametersException;
+import com.wy.panda.log.Logger;
+import com.wy.panda.log.LoggerFactory;
 import com.wy.panda.mvc.annotation.RequestParam;
 import com.wy.panda.mvc.domain.Request;
 import com.wy.panda.mvc.domain.Response;
@@ -28,13 +29,17 @@ import com.wy.panda.mvc.inject.StringInjector;
 
 public class Adaptor {
 
+	private static final Logger log = LoggerFactory.getLogger(Adaptor.class);
+
 	/** 内部方法 */
 	private Method method;
 	/** 参数名 */
 	private String[] paramNameList;
 	/** 参数注入方法 */
 	private Injector[] injectors;
-	
+	/** 绑定线程的参数，Injector引用列表 */
+	private Integer[] bindSourceInjectorRefs;
+
 	public Adaptor(Method method) {
 		this.method = method;
 	}
@@ -52,11 +57,34 @@ public class Adaptor {
 			paramNameList[i] = paramName;
 			// 具有相同的参数名出现
 			if (paramNameFilter.contains(paramName)) {
-				throw new IllegalParametersException("Parameter name dumplicate");
+				throw new IllegalParametersException("Parameter name duplicated");
 			}
 			paramNameFilter.add(paramName);
 			
 			injectors[i] = parseInjector(p.getType(), paramName);
+		}
+	}
+
+	public void initBindSourceInjectors(String[] bindSource) {
+		if (bindSource == null || bindSource.length == 0) {
+			return;
+		}
+
+		bindSourceInjectorRefs = new Integer[bindSource.length];
+		for (int k = 0; k < bindSource.length; k++) {
+			boolean found = false;
+			for (int i = 0; i < paramNameList.length; i++) {
+				if (!paramNameList[i].equals(bindSource[k])) {
+					continue;
+				}
+				found = true;
+				bindSourceInjectorRefs[k] = i;
+			}
+			if (!found) {
+				// 默认的playerId找不到，或者指定的参数不存在
+				bindSourceInjectorRefs[k] = -1;
+				log.warn("cannot found bind source:{} in method {}", bindSource[k], method);
+			}
 		}
 	}
 
@@ -71,7 +99,22 @@ public class Adaptor {
 		}
 		return param;
 	}
-	
+
+	public Object[] adaptBindSources(Object[] params) {
+		if (bindSourceInjectorRefs == null || bindSourceInjectorRefs.length == 0) {
+			return null;
+		}
+
+		Object[] bindValues = new Object[bindSourceInjectorRefs.length];
+		for (int i = 0; i < bindSourceInjectorRefs.length; i++) {
+			Integer ref = bindSourceInjectorRefs[i];
+			if (ref.intValue() >= 0) {
+				bindValues[i] = params[ref];
+			}
+		}
+		return bindValues;
+	}
+
 	private Injector parseInjector(Class<?> paramType, String paramName) {
 		if (paramType == Request.class) {
 			return new RequestInjector();

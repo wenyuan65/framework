@@ -1,7 +1,9 @@
 package com.wy.panda.annotation;
 
 import com.wy.panda.mvc.annotation.Action;
+import com.wy.panda.mvc.annotation.Bind;
 import com.wy.panda.mvc.annotation.CommandMarker;
+import com.wy.panda.mvc.annotation.RequestParam;
 import com.wy.panda.rpc.RpcManager;
 
 import java.lang.annotation.Annotation;
@@ -13,12 +15,20 @@ public class PlayerAction {
 
     @Command(Cmd.Player_getPlayerList)
     public void getPlayerList() {
-
     }
 
     @Command(Cmd.Player_getPlayerInfo)
-    public void getPlayerInfo() {
+    public void getPlayerInfo(@RequestParam("playerId") long playerId) {
+    }
 
+    @Bind()
+    @Command(Cmd.Player_updatePlayerName)
+    public void updatePlayerName(@RequestParam("playerId") long playerId, @RequestParam("name") String name) {
+    }
+
+    @Bind({ "clubId" })
+    @Command(value = Cmd.Club_apply)
+    public void apply(@RequestParam("playerId") long playerId, @RequestParam("clubId") int clubId) {
     }
 
     @RpcCommand(RpcCmd.getPlayerFriends)
@@ -33,7 +43,7 @@ public class PlayerAction {
     public static void main(String[] args) {
 
         try {
-            Method method = PlayerAction.class.getDeclaredMethod("getPlayerList");
+            Method method = PlayerAction.class.getDeclaredMethod("apply", long.class, int.class);
 
             Annotation[] annotations = method.getDeclaredAnnotations();
             Class<? extends Annotation> annotationType = annotations[0].annotationType();
@@ -58,7 +68,13 @@ public class PlayerAction {
             throw new RuntimeException(e);
         }
 
+        int coreThreadPoolSize = 129;
+        if ((coreThreadPoolSize & (coreThreadPoolSize - 1)) != 0) {
+            int shift = 32 - Integer.numberOfLeadingZeros(coreThreadPoolSize - 1);
+            coreThreadPoolSize = 1 << shift;
+        }
 
+        System.out.println(coreThreadPoolSize);
     }
 
 

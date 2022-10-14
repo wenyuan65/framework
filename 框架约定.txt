@@ -6,7 +6,7 @@
 字段类型：只支持int/long/float/double/String/java.util.Date
 
 3.command
-
+1) 接口参数中如果有玩家id，必须使用“playerId”作为名称
 
 4.action
 

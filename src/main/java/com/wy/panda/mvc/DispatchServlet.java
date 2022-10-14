@@ -1,10 +1,12 @@
 package com.wy.panda.mvc;
 
 import com.wy.panda.common.ScanUtil;
+import com.wy.panda.concurrent.DefaultThreadFactory;
 import com.wy.panda.exception.IllegalParametersException;
 import com.wy.panda.log.Logger;
 import com.wy.panda.log.LoggerFactory;
 import com.wy.panda.mvc.annotation.Action;
+import com.wy.panda.mvc.annotation.Bind;
 import com.wy.panda.mvc.annotation.CommandMarker;
 import com.wy.panda.mvc.annotation.RpcCommandMarker;
 import com.wy.panda.mvc.config.DispatchServletConfig;
@@ -21,10 +23,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class DispatchServlet {
 
@@ -45,7 +47,14 @@ public class DispatchServlet {
 	
 	/** 拦截器 */
 	private List<Interceptor> interceptors = new ArrayList<>();
-	
+
+	/** 核心线程 */
+	private ThreadPoolExecutor[] coreThreadPools = null;
+	/** 异步线程 */
+	private ThreadPoolExecutor asyncThreadPools = null;
+	/** 掩码 */
+	private int mark;
+
 	public DispatchServlet(DispatchServletConfig servletConfig, ServletContext servletContext) {
 		this.servletConfig = servletConfig;
 		this.servletContext = servletContext;
@@ -58,6 +67,31 @@ public class DispatchServlet {
 	public void init() throws Throwable {
 		initAction();
 		initInterceptors();
+		initThreadPools();
+	}
+
+	private void initThreadPools() {
+		int coreThreadPoolSize = servletConfig.getCoreThreadPoolSize();
+		if ((coreThreadPoolSize & (coreThreadPoolSize - 1)) == 0) {
+			int shift = 32 - Integer.numberOfLeadingZeros(coreThreadPoolSize - 1);
+			coreThreadPoolSize = 1 << shift;
+		}
+		coreThreadPoolSize = Math.max(coreThreadPoolSize, 8);
+		coreThreadPoolSize = Math.min(coreThreadPoolSize, 256);
+		mark = coreThreadPoolSize - 1;
+
+		coreThreadPools = new ThreadPoolExecutor[coreThreadPoolSize];
+		DefaultThreadFactory coreThreadFactory = new DefaultThreadFactory("CoreThreadPools", coreThreadPoolSize);
+		for (int i = 0; i < coreThreadPools.length; i++) {
+			coreThreadPools[i] = new ThreadPoolExecutor(1, 1, 60, TimeUnit.SECONDS,
+					new LinkedBlockingQueue<>(), coreThreadFactory);
+		}
+		log.info("init core Thread pool, size:{}", coreThreadPoolSize);
+
+		int poolSize = servletConfig.getAsyncThreadPoolSize();
+		asyncThreadPools = new ThreadPoolExecutor(poolSize, poolSize, 60, TimeUnit.SECONDS,
+				new LinkedBlockingQueue<>(), new DefaultThreadFactory("AsyncThreadPools", poolSize));
+		log.info("init async Thread pool, size:{}", poolSize);
 	}
 
 	private void initAction() throws Throwable {
@@ -79,26 +113,21 @@ public class DispatchServlet {
 		
 		Action action = clazz.getAnnotation(Action.class);
 		if (action == null) {
-			Class<?> superclass = clazz.getSuperclass();
-			if (superclass == null) {
-				return;
-			}
-			action = clazz.getSuperclass().getAnnotation(Action.class);
-			if (action == null) {
-				return;
-			}
+			return;
 		}
 		
 		// action实例
 		Object obj = null;
 		Method[] methods = clazz.getDeclaredMethods();
 		for (Method method : methods) {
-			obj = parseCommand(clazz, method, obj);
-			obj = parseRpcCommand(clazz, method, obj);
+			String[] bindSources = getBindSources(method);
+
+			obj = parseCommand(clazz, method, obj, bindSources);
+			obj = parseRpcCommand(clazz, method, obj, bindSources);
 		}
 	}
 
-	private Object parseCommand(Class<?> clazz, Method method, Object obj) throws Exception {
+	private Object parseCommand(Class<?> clazz, Method method, Object obj, String[] bindSources) throws Exception {
 		Annotation[] annotations = method.getDeclaredAnnotations();
 		for (Annotation annotation : annotations) {
 			Class<? extends Annotation> annotationType = annotation.annotationType();
@@ -138,9 +167,10 @@ public class DispatchServlet {
 
 			Invoker invoker = new Invoker(obj, method);
 			invoker.init();
+			invoker.initBindSource(bindSources);
+
 			actionMap.put(commandName, invoker);
 			codeMap.put(code, invoker);
-
 			log.info("init command:{}, handler:{}#{}", commandName, clazz.getSimpleName(), method.getName());
 
 			break;
@@ -149,7 +179,17 @@ public class DispatchServlet {
 		return obj;
 	}
 
-	private Object parseRpcCommand(Class<?> clazz, Method method, Object obj) throws Exception {
+	private String[] getBindSources(Method method) {
+		Bind bind = method.getAnnotation(Bind.class);
+
+		if (bind == null) {
+			return new String[]{ "playerId" };
+		} else {
+			return bind.value();
+		}
+	}
+
+	private Object parseRpcCommand(Class<?> clazz, Method method, Object obj, String[] bindSources) throws Exception {
 		Annotation[] annotations = method.getDeclaredAnnotations();
 		for (Annotation annotation : annotations) {
 			Class<? extends Annotation> annotationType = annotation.annotationType();
@@ -181,6 +221,7 @@ public class DispatchServlet {
 
 			RpcInvoker invoker = new RpcInvoker(obj, method);
 			invoker.init();
+			invoker.initBindSource(bindSources);
 			rpcInvokerMap.put(code, invoker);
 
 			log.info("init command:{}, handler:{}#{}", commandName, clazz.getSimpleName(), method.getName());
@@ -204,28 +245,35 @@ public class DispatchServlet {
 	}
 
 	public void dispatch(Request request, Response response) {
-		Invoker invoker = null;
+		final Invoker invoker;
 		if (request.getCode() > 0) {
 			invoker = codeMap.get(request.getCode());
 		} else {
 			invoker = actionMap.get(request.getCommand());
 		}
 
-		Result result = null;
 		if (invoker != null) {
-			// 设置调用系统环境，让command执行过程中，可以获得applicationContext
-			request.setServletContext(this.servletContext);
-			// 执行command
-			result = invoke(invoker, request, response);
+			Object[] param = invoker.getAdaptor().adapt(request, response);
+			request.setParam(param);
+
+			Object[] bindValues = invoker.getAdaptor().adaptBindSources(param);
+			int hash = Objects.hash(bindValues);
+
+			coreThreadPools[hash & mark].execute(() -> {
+				// 设置调用系统环境，让command执行过程中，可以获得applicationContext
+				request.setServletContext(this.servletContext);
+				// 执行command
+				Result result = invoke(invoker, request, response);
+
+				// 结果处理
+				if (result != null) {
+					result.render(request, response);
+				}
+			});
 		} else {
-			result = new NoActionResult(request.getCommand());
-		}
-		
-		// 结果处理
-		if (result != null) {
-			result.render(request, response);
-		} else {
-			result = new NoActionResult(request.getCommand());
+			log.error("not found command, code:{} or command:{}", request.getCode(), request.getCommand());
+
+			Result result = new NoActionResult(request.getCommand());
 			result.render(request, response);
 		}
 	}
@@ -236,16 +284,23 @@ public class DispatchServlet {
 			return;
 		}
 
-		Object result = null;
-		try {
-			result = invoker.invoke(request);
-			response.setResult(result);
-		} catch (Throwable e) {
-			response.setCause(e);
-			log.error("invoke rpc error", e);
-		}
+		Object[] bindValues = invoker.getAdaptor().adaptBindSources(request.getParam().getArgs());
+		int hash = Objects.hash(bindValues);
+		coreThreadPools[hash & mark].execute(() -> {
+			try {
+				Object result = invoker.invoke(request);
+				response.setResult(result);
+
+				if (response.getResult() != null) {
+					response.getCtx().writeAndFlush(response);
+				}
+			} catch (Throwable e) {
+				response.setCause(e);
+				log.error("invoke rpc error", e);
+			}
+		});
 	}
-	
+
 	public Result invoke(Invoker invoker, Request request, Response response) {
 		Result result = null;
 		if (interceptors.size() > 0) {
@@ -255,5 +310,14 @@ public class DispatchServlet {
 		
 		return result;
 	}
-	
+
+	public void run(Runnable runnable, Object... bindValues) {
+		int hash = Objects.hash(bindValues);
+		coreThreadPools[hash & mark].execute(runnable);
+	}
+
+	public void runAsync(Runnable runnable) {
+		asyncThreadPools.execute(runnable);
+	}
+
 }

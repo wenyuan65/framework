@@ -24,9 +24,11 @@ public class ServerConfig {
 	
 	private String interceptorNames = "";
 	
-	/** 消息编解码的线程数量 */
-	private int msgProcessEventGroupNum = Runtime.getRuntime().availableProcessors();
-	
+	/** 核心线程池线程数 */
+	private int coreThreadPoolSize = 8;
+	/** 异步线程池线程数 */
+	private int asyncThreadPoolSize = 4;
+
 	/** netty使用内存池 */
 	private boolean usePool = true;
 	
@@ -110,11 +112,17 @@ public class ServerConfig {
 	public void setEpoll(boolean epoll) {
 		this.epoll = epoll;
 	}
-	public int getMsgProcessEventGroupNum() {
-		return msgProcessEventGroupNum;
+	public int getCoreThreadPoolSize() {
+		return coreThreadPoolSize;
 	}
-	public void setMsgProcessEventGroupNum(int msgProcessEventGroupNum) {
-		this.msgProcessEventGroupNum = msgProcessEventGroupNum;
+	public void setCoreThreadPoolSize(int coreThreadPoolSize) {
+		this.coreThreadPoolSize = coreThreadPoolSize;
+	}
+	public int getAsyncThreadPoolSize() {
+		return asyncThreadPoolSize;
+	}
+	public void setAsyncThreadPoolSize(int asyncThreadPoolSize) {
+		this.asyncThreadPoolSize = asyncThreadPoolSize;
 	}
 	public boolean isHttpEnable() {
 		return httpEnable;

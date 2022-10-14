@@ -19,6 +19,8 @@ public class Request {
 	private byte[] contents;
 	/** 参数列表 */
 	private Map<String, String> paramMap;
+	/** 适配器解析的参数 */
+	private Object[] param;
 	/** 请求参数 */
 	private String ip;
 	/** 请求接受的时间 */
@@ -54,6 +56,14 @@ public class Request {
 
 	public void setParamMap(Map<String, String> paramMap) {
 		this.paramMap = paramMap;
+	}
+
+	public Object[] getParam() {
+		return param;
+	}
+
+	public void setParam(Object[] param) {
+		this.param = param;
 	}
 
 	public Object getAttribute(String attributeName) {

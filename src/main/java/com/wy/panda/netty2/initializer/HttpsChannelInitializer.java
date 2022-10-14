@@ -5,7 +5,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManagerFactory;
 
-import com.wy.panda.bootstrap.ServerBootStrap;
 import com.wy.panda.bootstrap.ServerConfig;
 import com.wy.panda.config.Configuration;
 import com.wy.panda.log.Logger;
@@ -16,7 +15,6 @@ import com.wy.panda.netty2.handler.PandaHttpRequestDecoder;
 import com.wy.panda.netty2.handler.PandaHttpResponseEncoder;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.WriteBufferWaterMark;
@@ -37,8 +35,8 @@ public class HttpsChannelInitializer extends NettyServerInitializer {
 
 	private SSLContext sslContext;
 
-	public HttpsChannelInitializer(DispatchServlet servlet, EventExecutorGroup eventExecutors, ServerConfig config) {
-		super(servlet, eventExecutors, config);
+	public HttpsChannelInitializer(DispatchServlet servlet, ServerConfig config) {
+		super(servlet, config);
 	}
 
 	@Override
@@ -65,13 +63,13 @@ public class HttpsChannelInitializer extends NettyServerInitializer {
 		engine.setUseClientMode(false);
 		engine.setNeedClientAuth(config.isNeedClientAuth());
 		
-		cp.addLast(eventExecutors, new SslHandler(engine));
-		cp.addLast(eventExecutors, new HttpResponseEncoder());
-		cp.addLast(eventExecutors, new HttpRequestDecoder());
-		cp.addLast(eventExecutors, new HttpObjectAggregator(1024 * 1024));
-		cp.addLast(eventExecutors, new ChunkedWriteHandler());
-		cp.addLast(eventExecutors, new PandaHttpResponseEncoder());
-		cp.addLast(eventExecutors, new PandaHttpRequestDecoder());
+		cp.addLast(new SslHandler(engine));
+		cp.addLast(new HttpResponseEncoder());
+		cp.addLast(new HttpRequestDecoder());
+		cp.addLast(new HttpObjectAggregator(1024 * 1024));
+		cp.addLast(new ChunkedWriteHandler());
+		cp.addLast(new PandaHttpResponseEncoder());
+		cp.addLast(new PandaHttpRequestDecoder());
 		
 		// 添加command处理器
 		cp.addLast(new DispatchChannelHandler(servlet, config.isUseSession()));

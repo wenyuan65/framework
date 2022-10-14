@@ -13,7 +13,6 @@ import com.wy.panda.mvc.config.DispatchServletConfig;
 import com.wy.panda.mvc.intercept.Interceptor;
 import com.wy.panda.netty2.NettyServer;
 import com.wy.panda.netty2.NettyServerConfig;
-import com.wy.panda.netty2.initializer.HttpsChannelInitializer;
 import com.wy.panda.netty2.initializer.NettyServerInitializer;
 import com.wy.panda.session.SessionManager;
 import com.wy.panda.spring.ObjectFactory;
@@ -22,6 +21,7 @@ import io.netty.util.concurrent.EventExecutorGroup;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,6 +69,9 @@ public class ServerBootStrap {
 		DispatchServletConfig servletConfig = new DispatchServletConfig();
 		servletConfig.setCompress(config.isCompress());
 		servletConfig.setScanPath(config.getScanPath());
+		servletConfig.setCoreThreadPoolSize(config.getCoreThreadPoolSize());
+		servletConfig.setAsyncThreadPoolSize(config.getAsyncThreadPoolSize());
+
 		DispatchServlet servlet = new DispatchServlet(servletConfig, servletContext);
 		
 		// 添加拦截器
@@ -97,21 +100,19 @@ public class ServerBootStrap {
 	 * @throws Exception
 	 */
 	private void initProtocols(DispatchServlet servlet, ServerConfig config) throws Exception {
-		int eventGroupNum = config.getMsgProcessEventGroupNum();
-		NioEventLoopGroup group = new NioEventLoopGroup(eventGroupNum, 
-				new DefaultThreadFactory("EventExecutor", eventGroupNum));
-		
+		int eventGroupNum = 4;
+
 		boolean success = false;
 		if (config.isHttpsEnable()) {
-			initServer("https", servlet, group, config, config.getHttpsServerConfig());
+			initServer("https", servlet, config, config.getHttpsServerConfig());
 			success = true;
 		}
 		if (config.isHttpEnable()) {
-			initServer("http", servlet, group, config, config.getHttpServerConfig());
+			initServer("http", servlet, config, config.getHttpServerConfig());
 			success = true;
 		}
 		if (config.isTcpEnable()) {
-			initServer("tcp", servlet, group, config, config.getTcpServerConfig());
+			initServer("tcp", servlet, config, config.getTcpServerConfig());
 			success = true;
 		}
 		if (!success) {
@@ -119,12 +120,12 @@ public class ServerBootStrap {
 		}
 	}
 
-	private void initServer(String serverName, DispatchServlet servlet, NioEventLoopGroup group, ServerConfig config, NettyServerConfig httpsServerConfig) throws Exception {
+	private void initServer(String serverName, DispatchServlet servlet, ServerConfig config, NettyServerConfig httpsServerConfig) throws Exception {
 		String nettyServerInitializerClazz = httpsServerConfig.getNettyServerInitializerClazz();
 		
 		Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(nettyServerInitializerClazz);
 		Constructor<?> constructor = clazz.getDeclaredConstructor(DispatchServlet.class, EventExecutorGroup.class, ServerConfig.class);
-		NettyServerInitializer nettyServerInitializer = (NettyServerInitializer)constructor.newInstance(servlet, group, config);
+		NettyServerInitializer nettyServerInitializer = (NettyServerInitializer)constructor.newInstance(servlet, config);
 
 		NettyServer server = new NettyServer(serverName, httpsServerConfig, nettyServerInitializer);
 		server.init();
@@ -179,39 +180,18 @@ public class ServerBootStrap {
 	private ServerConfig loadConfig() {
 		ServerConfig config = new ServerConfig();
 		
-		String useSession = Configuration.getProperty("session.enable");
-		config.setUseSession("true".equalsIgnoreCase(useSession));
-		
-		String ContextInitlizerNames = Configuration.getProperty("context.initlizers");
-		config.setContextInitlizerNames(ContextInitlizerNames);
-		
-		String contextServerInitListener = Configuration.getProperty("context.server.initListener");
-		config.setContextServerInitListener(contextServerInitListener);
-		
-		String compress = Configuration.getProperty("compress");
-		config.setCompress("true".equalsIgnoreCase(compress));
-		
-		String scanPath = Configuration.getProperty("scan.path");
-		config.setScanPath(scanPath.trim());
-		
-		String interceptors = Configuration.getProperty("interceptors");
-		config.setInterceptorNames(interceptors.trim());
-		
-		String msgProcessEventGroupNum = Configuration.getProperty("msgProcessEventGroupNum");
-		if (StringUtils.isNotBlank(msgProcessEventGroupNum)) {
-			config.setMsgProcessEventGroupNum(Integer.parseInt(msgProcessEventGroupNum));
-		}
-		
-		String usePool = Configuration.getProperty("usePool");
-		if (StringUtils.isNotBlank(usePool)) {
-			config.setUsePool(Boolean.parseBoolean(usePool));
-		}
-		
-		String epoll = Configuration.getProperty("epoll");
-		if (StringUtils.isNotBlank(epoll)) {
-			config.setEpoll(Boolean.parseBoolean(epoll));
-		}
-		
+		setBooleanProperties(config, "useSession", "session.enable");
+		setStringProperties(config, "ContextInitlizerNames", "context.initlizers", false);
+		setStringProperties(config, "contextServerInitListener", "context.server.initListener", false);
+		setBooleanProperties(config, "compress", "compress");
+
+		setStringProperties(config, "scanPath", "scan.path", false);
+		setStringProperties(config, "interceptorNames", "interceptors", false);
+		setStringProperties(config, "coreThreadPoolSize", "coreThreadPoolSize", true);
+		setStringProperties(config, "asyncThreadPoolSize", "asyncThreadPoolSize", true);
+		setBooleanProperties(config, "usePool", "usePool");
+		setBooleanProperties(config, "epoll", "epoll");
+
 		String httpEnable = Configuration.getValue("http", "enable");
 		config.setHttpEnable("true".equalsIgnoreCase(httpEnable));
 		if (config.isHttpEnable()) {
@@ -241,7 +221,7 @@ public class ServerBootStrap {
 		
 		return config;
 	}
-	
+
 	/**
 	 * 解析网络协议配置
 	 * @param protocol
@@ -251,28 +231,55 @@ public class ServerBootStrap {
 		NettyServerConfig nettyConfig = new NettyServerConfig();
 		nettyConfig.setServerName(protocol);
 		
-		String value = Configuration.getValue(protocol, "bossThreadNum");
-		if (StringUtils.isNotBlank(value)) {
-			nettyConfig.setBossEventLoopNum(Integer.parseInt(value));
-		}
-		
-		value = Configuration.getValue(protocol, "workerThreadNum");
-		if (StringUtils.isNotBlank(value)) {
-			nettyConfig.setWorkerEventLoopNum(Integer.parseInt(value));
-		}
+		setIntProperties(nettyConfig, "bossEventLoopNum", protocol + "." + "bossThreadNum");
+		setIntProperties(nettyConfig, "workerEventLoopNum", protocol + "." + "workerThreadNum");
+		setStringProperties(nettyConfig, "nettyServerInitializerClazz", protocol + "." + "serverInitializer", true);
+		setIntProperties(nettyConfig, "port", protocol + "." + "port");
 
-		value = Configuration.getValue(protocol, "serverInitializer");
-		if (StringUtils.isNotBlank(value)) {
-			nettyConfig.setNettyServerInitializerClazz(value.trim());
-		}
-
-		try {
-			value = Configuration.getValue(protocol, "port");
-			nettyConfig.setPort(Integer.parseInt(value));
-		} catch (Exception e) {
-			log.error("protocol:{} port config error", protocol);
-		}
 		return nettyConfig;
+	}
+
+	private void setStringProperties(Object config, String fieldName, String propertyName, boolean useDefaultWhenBlank) {
+		try {
+			String value = Configuration.getProperty(propertyName);
+			if (useDefaultWhenBlank && StringUtils.isBlank(value)) {
+				return;
+			}
+
+			Field field = config.getClass().getDeclaredField(fieldName);
+			field.setAccessible(true);
+			field.set(config, value);
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void setIntProperties(Object config, String fieldName, String propertyName) {
+		try {
+			String value = Configuration.getProperty(propertyName);
+			if (StringUtils.isBlank(value)) {
+				return;
+			}
+
+			Field field = config.getClass().getDeclaredField(fieldName);
+			field.setAccessible(true);
+			field.set(config, Integer.parseInt(value));
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void setBooleanProperties(Object config, String fieldName, String propertyName) {
+		try {
+			String value = Configuration.getProperty(propertyName);
+			boolean boolValue = "true".equalsIgnoreCase(value);
+
+			Field field = config.getClass().getDeclaredField(fieldName);
+			field.setAccessible(true);
+			field.set(config, boolValue);
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.wy.panda.rpc;
 
+import io.netty.channel.ChannelHandlerContext;
+
 public class RpcResponse {
 	
 	private int requestId;
@@ -7,7 +9,9 @@ public class RpcResponse {
 	private Object result;
 	
 	private Throwable cause;
-	
+
+	private ChannelHandlerContext ctx;
+
 	public RpcResponse(int requestId) {
 		this.requestId = requestId;
 	}
@@ -36,4 +40,11 @@ public class RpcResponse {
 		this.cause = t;
 	}
 
+	public ChannelHandlerContext getCtx() {
+		return ctx;
+	}
+
+	public void setCtx(ChannelHandlerContext ctx) {
+		this.ctx = ctx;
+	}
 }

@@ -8,6 +8,7 @@ import java.util.List;
 import com.wy.panda.exception.IllegalParametersException;
 import com.wy.panda.mvc.domain.Request;
 import com.wy.panda.mvc.domain.Response;
+import com.wy.panda.mvc.inject.Injector;
 import com.wy.panda.mvc.result.Result;
 import com.wy.panda.mvc.validate.ClearValidated;
 import com.wy.panda.mvc.validate.Rule;
@@ -33,7 +34,6 @@ public class Invoker {
 	/** 条件检查 */
 	private List<Validation> validations;
 
-	
 	public Invoker(Object instance, Method method) {
 		this.invokeInstance = instance;
 		this.method = method;
@@ -49,6 +49,10 @@ public class Invoker {
 		initResultType();
 		// 验证功能
 		initValidations();
+	}
+
+	public void initBindSource(String[] bindSources) {
+		adaptor.initBindSourceInjectors(bindSources);
 	}
 	
 	/**
@@ -66,8 +70,12 @@ public class Invoker {
 				}
 			}
 		}
+
+		Object[] param = request.getParam();
+		if (request.getParam() == null) {
+			param = adaptor.adapt(request, response);
+		}
 		
-		Object[] param = adaptor.adapt(request, response);
 		return method.invoke(invokeInstance, param);
 	}
 
@@ -177,5 +185,9 @@ public class Invoker {
 	public void setMethodName(String methodName) {
 		this.methodName = methodName;
 	}
-	
+
+	public Adaptor getAdaptor() {
+		return adaptor;
+	}
+
 }

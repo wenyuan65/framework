@@ -4,6 +4,10 @@ public enum Cmd {
 
     Player_getPlayerList(10001, "player@getPlayerList"),
     Player_getPlayerInfo(10002, "player@getPlayerInfo"),
+    Player_updatePlayerName(10003, "player@updatePlayerName"),
+
+    Club_apply(10101, "club@apply"),
+
     ;
 
     private int code;

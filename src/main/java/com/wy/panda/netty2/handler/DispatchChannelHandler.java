@@ -66,12 +66,9 @@ public class DispatchChannelHandler extends ChannelInboundHandlerAdapter {
 		} else if (msg instanceof RpcRequest) {
 			RpcRequest request = (RpcRequest)msg;
 			RpcResponse response = new RpcResponse(request.getRequestId());
+			response.setCtx(ctx);
 
 			servlet.dispatch(request, response);
-
-			if (response.getResult() != null) {
-				ctx.writeAndFlush(response);
-			}
 		}
 	}
 

@@ -18,8 +18,8 @@ import io.netty.util.concurrent.EventExecutorGroup;
 
 public class HttpChannelInitializer extends NettyServerInitializer {
 
-	public HttpChannelInitializer(DispatchServlet servlet, EventExecutorGroup eventExecutors, ServerConfig config) {
-		super(servlet, eventExecutors, config);
+	public HttpChannelInitializer(DispatchServlet servlet, ServerConfig config) {
+		super(servlet, config);
 	}
 
 	@Override
@@ -35,12 +35,12 @@ public class HttpChannelInitializer extends NettyServerInitializer {
 	@Override
 	protected void initChannel(SocketChannel ch) throws Exception {
 		ChannelPipeline cp = ch.pipeline();
-		cp.addLast(eventExecutors, new HttpResponseEncoder());
-		cp.addLast(eventExecutors, new HttpRequestDecoder());
-		cp.addLast(eventExecutors, new HttpObjectAggregator(1024 * 1024));
-		cp.addLast(eventExecutors, new ChunkedWriteHandler());
-		cp.addLast(eventExecutors, new PandaHttpResponseEncoder());
-		cp.addLast(eventExecutors, new PandaHttpRequestDecoder());
+		cp.addLast(new HttpResponseEncoder());
+		cp.addLast(new HttpRequestDecoder());
+		cp.addLast(new HttpObjectAggregator(1024 * 1024));
+		cp.addLast(new ChunkedWriteHandler());
+		cp.addLast(new PandaHttpResponseEncoder());
+		cp.addLast(new PandaHttpRequestDecoder());
 		
 		// 添加command处理器
 		cp.addLast(new DispatchChannelHandler(servlet, config.isUseSession()));

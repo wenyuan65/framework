@@ -15,8 +15,8 @@ import io.netty.util.concurrent.EventExecutorGroup;
 
 public class TcpChannelInitializer extends NettyServerInitializer {
 
-	public TcpChannelInitializer(DispatchServlet servlet, EventExecutorGroup eventExecutors, ServerConfig config) {
-		super(servlet, eventExecutors, config);
+	public TcpChannelInitializer(DispatchServlet servlet, ServerConfig config) {
+		super(servlet, config);
 	}
 
 	@Override
@@ -34,14 +34,14 @@ public class TcpChannelInitializer extends NettyServerInitializer {
 		Serializable serializer = SerializerManager.getInstance().getSerializer();
 
 		ChannelPipeline cp = ch.pipeline();
-		cp.addLast(eventExecutors, new PandaTcpMessageDecoder());
-		cp.addLast(eventExecutors, new PandaTcpCommRequestDecoder());
-		cp.addLast(eventExecutors, new PandaTcpGlobalRequestDecoder());
-		cp.addLast(eventExecutors, new PandaTcpRpcRequestDecoder(config.isRpcCompress()));
-		cp.addLast(eventExecutors, new PandaTcpResponseEncoder());
+		cp.addLast(new PandaTcpMessageDecoder());
+		cp.addLast(new PandaTcpCommRequestDecoder());
+		cp.addLast(new PandaTcpGlobalRequestDecoder());
+		cp.addLast(new PandaTcpRpcRequestDecoder(config.isRpcCompress()));
+		cp.addLast(new PandaTcpResponseEncoder());
 
-//		cp.addLast(eventExecutors, new RpcRequestCodec(config.isRpcCompress(), serializer));
-		cp.addLast(eventExecutors, new RpcResponseCodec(config.isRpcCompress(), serializer));
+//		cp.addLast(new RpcRequestCodec(config.isRpcCompress(), serializer));
+		cp.addLast(new RpcResponseCodec(config.isRpcCompress(), serializer));
 
 		// 添加command处理器
 		cp.addLast(new DispatchChannelHandler(servlet, config.isUseSession()));
