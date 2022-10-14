@@ -8,10 +8,121 @@
 3.command
 1) 接口参数中如果有玩家id，必须使用“playerId”作为名称
 
+Command注解定义：
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Documented
+@CommandMarker(code = "code", action = "command")
+public @interface Command {
+
+    Cmd value();
+
+}
+
+Cmd定义：
+public enum Cmd {
+
+    Player_getPlayerList(10001, "player@getPlayerList"),
+    Player_getPlayerInfo(10002, "player@getPlayerInfo"),
+    Player_updatePlayerName(10003, "player@updatePlayerName"),
+
+    Club_apply(10101, "club@apply"),
+
+    ;
+
+    private int code;
+    private String command;
+
+    Cmd(int code, String command) {
+        this.code = code;
+        this.command = command;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public String getCommand() {
+        return command;
+    }
+
+}
+
 4.action
+@Bind注解作用：依据哪些参数的值，将接口绑定到对应的线程上执行，实现同一个玩家（或者同一个公会）的请求在同一个线程中执行，达到消除锁的目的。
+@Bind注解默认为{"playerId"}, 当执行的参数不存在时，将被绑定到第1个线程（下标为0）。因此，接口参数中如果有玩家id，必须使用“playerId”作为参数名称。
+
+定义格式：
+@Action
+public class PlayerAction {
+
+    @Command(Cmd.Player_getPlayerList)
+    public void getPlayerList() {
+    }
+
+    @Command(Cmd.Player_getPlayerInfo)
+    public void getPlayerInfo(@RequestParam("playerId") long playerId) {
+    }
+
+    @Bind()
+    @Command(Cmd.Player_updatePlayerName)
+    public void updatePlayerName(@RequestParam("playerId") long playerId, @RequestParam("name") String name) {
+    }
+
+    @Bind({ "clubId" })
+    @Command(Cmd.Club_apply)
+    public void apply(@RequestParam("playerId") long playerId, @RequestParam("clubId") int clubId) {
+    }
+
+}
 
 
 5.rpc
+RpcCommand的value()值可以定义在Cmd文件中，也可以单独定义在RpcCmd文件中
+
+RPC的Action定义格式：
+@Action
+public class RpcFriendAction {
+
+    @RpcCommand(RpcCmd.getPlayerFriends)
+    public Integer getPlayerFriends(int playerId) {
+        return 0;
+    }
+}
+
+RpcCommand定义格式：
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Documented
+@RpcCommandMarker(code = "code", action = "command")
+public @interface RpcCommand {
+
+    RpcCmd value();
+
+}
+
+RpcCmd定义格式：
+public enum RpcCmd {
+
+    getPlayerFriends(90101, "rpc_friends@getPlayerFriends"),
+    ;
+
+    private int code;
+    private String command;
+
+    RpcCmd(int code, String command) {
+        this.code = code;
+        this.command = command;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public String getCommand() {
+        return command;
+    }
+}
 
 
 TCP请求协议类型：
