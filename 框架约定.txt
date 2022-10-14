@@ -6,7 +6,8 @@
 字段类型：只支持int/long/float/double/String/java.util.Date
 
 3.command
-1) 接口参数中如果有玩家id，必须使用“playerId”作为名称
+1) 接口参数中如果有玩家id，必须使用“playerId”作为名称；
+2) tcp协议包使用Cmd中的code区分接口，http使用command名称区分接口；
 
 Command注解定义：
 @Retention(RetentionPolicy.RUNTIME)
