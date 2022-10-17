@@ -155,3 +155,26 @@ packageType 	1字节，2rpc包
 requestId 	    4字节
 command		    4字节
 data            n字节
+
+6. 停服务器
+通过在shell脚本中，使用curl命令发起http请求访问该接口
+该接口首先停止服务器对外提供服务，暂停2秒（等待之前程序执行完，异步sql入库），然后程序退出。
+
+@Action
+public class ServerAction {
+
+    @Command(Cmd.Server_shutdown)
+    public ByteResult shutdown(Request request) {
+        // 停止服务
+        request.getServletContext().getDispatchServlet().shutdown();
+        // 等待服务器刷数据存储
+        try {
+            Thread.sleep(2000);
+        } catch (Throwable t) {
+
+        }
+
+        System.exit(0);
+    }
+
+}

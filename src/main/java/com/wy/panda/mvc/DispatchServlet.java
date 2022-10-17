@@ -42,9 +42,6 @@ public class DispatchServlet {
 	private Map<Integer, Invoker> codeMap = new HashMap<>();
 	private Map<Integer, RpcInvoker> rpcInvokerMap = new HashMap<>();
 
-	/** 默认的返回 */
-	private ByteResult defaultResult = new ByteResult(null);
-	
 	/** 拦截器 */
 	private List<Interceptor> interceptors = new ArrayList<>();
 
@@ -54,6 +51,8 @@ public class DispatchServlet {
 	private ThreadPoolExecutor asyncThreadPools = null;
 	/** 掩码 */
 	private int mark;
+	/** 关闭 */
+	private volatile boolean shutdown = false;
 
 	public DispatchServlet(DispatchServletConfig servletConfig, ServletContext servletContext) {
 		this.servletConfig = servletConfig;
@@ -65,9 +64,14 @@ public class DispatchServlet {
 	}
 	
 	public void init() throws Throwable {
+		initContext();
 		initAction();
 		initInterceptors();
 		initThreadPools();
+	}
+
+	private void initContext() {
+		servletContext.setServlet(this);
 	}
 
 	private void initThreadPools() {
@@ -245,6 +249,12 @@ public class DispatchServlet {
 	}
 
 	public void dispatch(Request request, Response response) {
+		if (shutdown) {
+			Result result = new NoActionResult(request.getCommand());
+			result.render(request, response);
+			return;
+		}
+
 		final Invoker invoker;
 		if (request.getCode() > 0) {
 			invoker = codeMap.get(request.getCode());
@@ -279,6 +289,13 @@ public class DispatchServlet {
 	}
 
 	public void dispatch(RpcRequest request, RpcResponse response) {
+		// rpc异常时返回null给客户端
+		if (shutdown) {
+			response.setCause(new RuntimeException("remote server shutting down"));
+			response.getCtx().writeAndFlush(response);
+			return;
+		}
+
 		RpcInvoker invoker = rpcInvokerMap.get(request.getCommand());
 		if (invoker == null) {
 			return;
@@ -296,6 +313,7 @@ public class DispatchServlet {
 				}
 			} catch (Throwable e) {
 				response.setCause(e);
+				response.getCtx().writeAndFlush(response);
 				log.error("invoke rpc error", e);
 			}
 		});
@@ -318,6 +336,10 @@ public class DispatchServlet {
 
 	public void runAsync(Runnable runnable) {
 		asyncThreadPools.execute(runnable);
+	}
+
+	public void shutdown() {
+		this.shutdown = true;
 	}
 
 }

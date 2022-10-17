@@ -108,10 +108,6 @@ public class AsyncSQLManager {
 			e.printStackTrace();
 		}
 	}
-	
-	public void flush() {
-
-	}
 
 	public boolean isStarted() {
 		return state.get() >= 1;

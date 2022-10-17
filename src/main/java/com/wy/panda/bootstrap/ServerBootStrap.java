@@ -2,7 +2,6 @@ package com.wy.panda.bootstrap;
 
 import com.wy.panda.bootstrap.initlize.ContextInitlizer;
 import com.wy.panda.common.SystemProperty;
-import com.wy.panda.concurrent.DefaultThreadFactory;
 import com.wy.panda.concurrent.DefaultUncaughtExceptionHandler;
 import com.wy.panda.config.Configuration;
 import com.wy.panda.log.Logger;
@@ -16,7 +15,6 @@ import com.wy.panda.netty2.NettyServerConfig;
 import com.wy.panda.netty2.initializer.NettyServerInitializer;
 import com.wy.panda.session.SessionManager;
 import com.wy.panda.spring.ObjectFactory;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,7 +40,7 @@ public class ServerBootStrap {
 		initContext(servletContext, config);
 		
 		// 初始化DispatchServlet
-		DispatchServlet servlet = initServletDispatch(servletContext, config);
+		final DispatchServlet servlet = initServletDispatch(servletContext, config);
 		
 		// 初始化服务器
 		initProtocols(servlet, config);

@@ -61,7 +61,7 @@ public final class Scheduler {
 	}
 	
 	public static void init(ServletContext context) {
-		ctx = (ApplicationContext)context.getAttribute(ServletContext.ATTRIBUTE_SPRING_APPLICATION_CONTEXT);
+		ctx = context.getApplicationContext();
 	}
 	
 	/**

@@ -1,11 +1,10 @@
 package com.wy.panda.bootstrap.initlize;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import com.wy.panda.bootstrap.ServerConfig;
 import com.wy.panda.mvc.ServletContext;
 import com.wy.panda.spring.ObjectFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class SpringContextInitlizer implements ContextInitlizer {
 	
@@ -13,11 +12,10 @@ public class SpringContextInitlizer implements ContextInitlizer {
 
 	@Override
 	public void initContext(ServletContext servletContext, ServerConfig config) throws Exception {
+		// 初始化spring应用
 		initSpringContext(config);
-		
 		// 在ServletContext中设置spring引用
-		servletContext.addAttribute(ServletContext.ATTRIBUTE_SPRING_APPLICATION_CONTEXT, applicationContext);
-		
+		servletContext.setApplicationContext(applicationContext);
 		// 设置spring环境
 		ObjectFactory.setApplicationContext(applicationContext);
 	}
