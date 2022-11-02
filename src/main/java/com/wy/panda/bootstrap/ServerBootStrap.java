@@ -98,8 +98,6 @@ public class ServerBootStrap {
 	 * @throws Exception
 	 */
 	private void initProtocols(DispatchServlet servlet, ServerConfig config) throws Exception {
-		int eventGroupNum = 4;
-
 		boolean success = false;
 		if (config.isHttpsEnable()) {
 			initServer("https", servlet, config, config.getHttpsServerConfig());
@@ -165,7 +163,7 @@ public class ServerBootStrap {
 			
 			Class<?> clazz = Class.forName(listener);
 			if (InitListener.class.isAssignableFrom(clazz)) {
-				InitListener initListener = (InitListener) ObjectFactory.getObject(clazz, null);
+				InitListener initListener = ObjectFactory.getObject(clazz, null);
 				initListener.init(servletContext);
 			}
 		}

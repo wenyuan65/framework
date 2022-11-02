@@ -2,6 +2,8 @@ package com.wy.panda.rpc;
 
 public interface RpcService {
 
+	void invokeSync(RpcRequest request, RpcResponse response) throws InterruptedException;
+
 	void invokeSync(RpcRequest request, RpcResponse response, long timeoutMs) throws InterruptedException;
 
 	void invokeAsync(RpcRequest request, Callback callback);

@@ -25,7 +25,7 @@ public abstract class AbstractConnection implements Connection {
 	public void handleResponse(RpcResponse response) {
 		int requestId = response.getRequestId();
 		
-		InvokeFuture future = invokeFutureMap.get(requestId);
+		InvokeFuture future = getInvokeFuture(requestId);
 		if (future != null) {
 			future.setCause(response.getCause());
 			future.putResponse(response.getResult());

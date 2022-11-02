@@ -7,13 +7,16 @@ import com.wy.panda.rpc.connection.ConnectionFactory;
 import com.wy.panda.rpc.connection.ConnectionManager;
 import com.wy.panda.rpc.connection.DefaultConnectionManager;
 import com.wy.panda.rpc.future.InvokeFuture;
+import com.wy.panda.timer.Scheduler;
 
 public class RpcClient implements RpcService {
 	
 	private ConnectionManager connectionManager;
 	
 	private AtomicBoolean startFlags = new AtomicBoolean(false);
-	
+
+	private static long DEFAULT_TIMEOUT = 5000;
+
 	public RpcClient(ConnectionFactory connectionFactory) {
 		connectionManager = new DefaultConnectionManager(connectionFactory);
 	}
@@ -25,7 +28,12 @@ public class RpcClient implements RpcService {
 		
 		connectionManager.init();
 	}
-	
+
+	@Override
+	public void invokeSync(RpcRequest request, RpcResponse response) throws InterruptedException {
+		invokeSync(request, response, DEFAULT_TIMEOUT);
+	}
+
 	@Override
 	public void invokeSync(RpcRequest request, RpcResponse response, long timeoutMs) throws InterruptedException {
 		String address = request.getHost() + ":" + request.getPort();
@@ -41,10 +49,7 @@ public class RpcClient implements RpcService {
 
 	@Override
 	public void invokeAsync(RpcRequest request, Callback callback) {
-		String address = request.getHost() + ":" + request.getPort();
-		Connection connection = connectionManager.get(address);
-
-		connection.sendRequest(request, new RpcResponse(request.getRequestId()), callback);
+		invokeAsync(request, callback, DEFAULT_TIMEOUT);
 	}
 
 	@Override
@@ -53,7 +58,14 @@ public class RpcClient implements RpcService {
 		Connection connection = connectionManager.get(address);
 
 		connection.sendRequest(request, new RpcResponse(request.getRequestId()), callback);
-		// TODO: 超时，没有执行完的future抛异常处理
+
+		Scheduler.schedule(() -> {
+			InvokeFuture invokeFuture = connection.getInvokeFuture(request.getRequestId());
+			if (invokeFuture == null) {
+				return;
+			}
+			connection.removeInvokeFuture(invokeFuture);
+		}, timeoutMs);
 	}
 
 	@Override
