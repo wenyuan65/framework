@@ -1,1 +1,1 @@
-http\://www.framework.com/schema/netty=com.wy.panda.netty.spring.namespace.handler.NettyNamespaceHandler
+http\://www.framework.com/schema/netty=NettyNamespaceHandler

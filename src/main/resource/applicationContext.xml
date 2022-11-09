@@ -50,19 +50,19 @@
 
 
 	
-	<bean id="tableFactory" class="com.wy.panda.jdbc.TableFactory">
+	<bean id="tableFactory" class="com.panda.framework.jdbc.TableFactory">
 		<property name="dataSource" ref="dataSource" />
-		<property name="scanPath" value="com.wy.panda.amodule" />
+		<property name="scanPath" value="com.panda.framework.amodule" />
 		<property name="excludePath" value="" />
 	</bean>
 	
-	<bean class="com.wy.panda.jdbc.repository.RepositoryScannerConfigurer">
+	<bean class="com.panda.framework.jdbc.repository.RepositoryScannerConfigurer">
         <property name="basePackage" value="com.wy.panda.amodule"/>
     </bean>
     
     <context:annotation-config></context:annotation-config>
     <!-- 自动扫描与装配bean -->  
-    <context:component-scan base-package="com.wy.panda"></context:component-scan> 
+    <context:component-scan base-package="com.panda"></context:component-scan>
     <!-- 引入Netty配置 --> 
 	<!-- <import resource="Netty.xml"/> -->
 	<!-- 配置文件 -->
