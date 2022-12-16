@@ -1,17 +1,15 @@
 package com.panda.framework.common;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.panda.framework.jdbc.memory.dynamic.DynamicUpdate;
 
 public class ReflactUtil {
-	
-//	public static 
 	
 	/** 基本类型的默认值 */
 	private static Map<Class<?>, Object> DEFAULT_VALUE_MAP = new HashMap<>();
@@ -39,7 +37,7 @@ public class ReflactUtil {
 		PRIMARY_TYPE_DESC_MAP.put(long.class, "J");
 		PRIMARY_TYPE_DESC_MAP.put(double.class, "D");
 	}
-	
+
 	public static String getMethodSign(Method method) {
 		Parameter[] parameters = method.getParameters();
 		StringBuilder sb = new StringBuilder();
@@ -86,6 +84,23 @@ public class ReflactUtil {
 		}
 		
 		return inputClazz.asSubclass(outputClazz);
+	}
+
+	public static List<Field> getAllFields(Class<?> clazz) {
+		List<Field> list = new ArrayList<>();
+
+		while (clazz != null && clazz != Object.class) {
+			Field[] fields = clazz.getDeclaredFields();
+			for (Field field : fields) {
+				if (!Modifier.isStatic(field.getModifiers())) {
+					list.add(field);
+				}
+			}
+
+			clazz = clazz.getSuperclass();
+		}
+
+		return list;
 	}
 	
 	/**
