@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomUtils {
+
+	public static final String Random_Pools = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 	
 	private static ThreadLocalRandom getInstance() {
 		return ThreadLocalRandom.current();
@@ -169,6 +171,25 @@ public class RandomUtils {
 		}
 
 		return result;
+	}
+
+
+	public static String generateRandomString(int size) {
+		int length = Random_Pools.length();
+
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < size; i++) {
+			int index = nextInt(length);
+			char c = Random_Pools.charAt(index);
+			sb.append(c);
+		}
+
+		return sb.toString();
+	}
+
+	public static void main(String[] args) {
+		System.out.println(generateRandomString(16));
+		System.out.println(generateRandomString(16));
 	}
 	
 }
