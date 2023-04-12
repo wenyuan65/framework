@@ -1,11 +1,7 @@
 //package com.panda.framework.rank.convert;
 //
-//import com.dongyou.hsqwz.entity.arena.PlayerArena;
-//import com.dongyou.hsqwz.rank.RankData;
-//import com.dongyou.hsqwz.rank.RankDataConvertor;
-//import com.google.protobuf.Message;
 //
-//public class ArenaRankDataConvertor implements RankDataConvertor<PlayerArena> {
+//public class ArenaRankDataConvertor implements RankDataConvertor<PlayerArena, ArenaPb.PlayerArenaRankInfo.Builder> {
 //
 //    @Override
 //    public RankData convert(PlayerArena playerArena) {
@@ -24,8 +20,24 @@
 //    }
 //
 //    @Override
-//    public Message buildMessage(RankData rankData) {
-//        return null;
+//    public ArenaPb.PlayerArenaRankInfo.Builder buildMessage(RankData rankData, int rank) {
+//        String[] param = rankData.getParam();
+//        int[] param2 = rankData.getParam2();
+//
+//        int rate = 10000;
+//        if (param2[4] != 0) {
+//            rate = (int) (param2[3] * 10000L / param2[4]);
+//        }
+//
+//        ArenaPb.PlayerArenaRankInfo.Builder builder = ArenaPb.PlayerArenaRankInfo.newBuilder();
+//        builder.setPlayerId(rankData.getPlayerId());
+//        builder.setNickName(param[0]);
+//        builder.setHead(param2[0]);
+//        builder.setRank(rank);
+//        builder.setWinningRate(rate);
+//        builder.setScore((int) rankData.getScore());
+//
+//        return builder;
 //    }
 //
 //}

@@ -74,12 +74,4 @@
 //        rank.clearRank();
 //    }
 //
-//    public RankDataConvertor createConvertor(RankType rankType) {
-//        switch (rankType) {
-////            case Arena: return new ArenaRankDataConvertor();
-//
-//            default: throw new RuntimeException("unknown rank type:" + rankType);
-//        }
-//    }
-//
 //}
