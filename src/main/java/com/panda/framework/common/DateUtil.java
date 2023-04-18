@@ -45,7 +45,7 @@ public class DateUtil {
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
-		return new Date(cal.getTimeInMillis());
+		return cal.getTime();
 	}
 
 	public static Date getNextDate(Date date) {
@@ -56,7 +56,7 @@ public class DateUtil {
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
-		return new Date(cal.getTimeInMillis());
+		return cal.getTime();
 	}
 
 	/**
@@ -80,7 +80,7 @@ public class DateUtil {
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 
-		return new Date(cal.getTimeInMillis());
+		return cal.getTime();
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class DateUtil {
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 
-		return new Date(cal.getTimeInMillis());
+		return cal.getTime();
 	}
 
 	/**
@@ -120,7 +120,23 @@ public class DateUtil {
 	}
 
 	public static Date getNextTime(Date date, LocalTime time) {
-		return getNextTime(date, time.getHour(), time.getMinute(), time.getSecond());
+		Calendar cal = getCalendar();
+		cal.setTime(date);
+		cal.set(Calendar.HOUR_OF_DAY, time.getHour());
+		cal.set(Calendar.MINUTE, time.getMinute());
+		cal.set(Calendar.SECOND, time.getSecond());
+
+		if (time == LocalTime.MAX) {
+			cal.set(Calendar.MILLISECOND, 1000);
+		} else {
+			cal.set(Calendar.MILLISECOND, 0);
+		}
+
+		if (cal.getTimeInMillis() <= date.getTime()) {
+			cal.add(Calendar.DATE, 1);
+		}
+
+		return cal.getTime();
 	}
 
 	public static Date getNextTime(Date date, int hour, int minute, int second) {
@@ -131,11 +147,11 @@ public class DateUtil {
 		cal.set(Calendar.SECOND, second);
 		cal.set(Calendar.MILLISECOND, 0);
 
-		if (cal.getTime().before(date)) {
+		if (cal.getTimeInMillis() <= date.getTime()) {
 			cal.add(Calendar.DATE, 1);
 		}
 
-		return new Date(cal.getTimeInMillis());
+		return cal.getTime();
 	}
 
 	public static Calendar getCalendar() {

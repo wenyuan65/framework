@@ -17,7 +17,24 @@
 //
 //    private Map<RankType, Rank> rankMap = new ConcurrentHashMap<>();
 //
-//    public void putRank(RankType rankType, Rank rank) {
+//    /**
+//     * 初始化排行榜
+//     * @param rankType
+//     * @param rankDataList
+//     */
+//    public void initRank(RankType rankType, List<RankData> rankDataList) {
+//        Rank rank = new Rank();
+//        rank.init(rankType.getCount(), rankType.getRange(), rankDataList);
+//
+//        addRank(rankType, rank);
+//    }
+//
+//    /**
+//     * 添加排行榜
+//     * @param rankType
+//     * @param rank
+//     */
+//    public void addRank(RankType rankType, Rank rank) {
 //        if (rankMap.containsKey(rankType)) {
 //            throw new RuntimeException("排行榜已经存在，不可重复添加，" + rankType.getType());
 //        }
@@ -25,10 +42,20 @@
 //        rankMap.put(rankType, rank);
 //    }
 //
+//    /**
+//     * 获取排行榜
+//     * @param rankType
+//     * @return
+//     */
 //    public Rank getRank(RankType rankType) {
 //        return rankMap.get(rankType);
 //    }
 //
+//    /**
+//     * 获取排行榜精确数据
+//     * @param rankType
+//     * @return
+//     */
 //    public List<RankData> getRankData(RankType rankType) {
 //        Rank rank = getRank(rankType);
 //        if (rank == null) {
@@ -38,7 +65,16 @@
 //        return rank.getRankData();
 //    }
 //
-//    public void addRank(RankType rankType, RankData rankData) {
+//    public int getRankNo(RankType rankType, RankData rankData) {
+//        Rank rank = getRank(rankType);
+//        if (rank == null) {
+//            return -1;
+//        }
+//
+//        return rank.queryRank(rankData);
+//    }
+//
+//    public void addRankData(RankType rankType, RankData rankData) {
 //        Rank rank = getRank(rankType);
 //        if (rank == null) {
 //            return;
@@ -56,6 +92,15 @@
 //        rank.updateRank(newData, oldData);
 //    }
 //
+//    public void startRank(RankType rankType) {
+//        Rank rank = getRank(rankType);
+//        if (rank == null) {
+//            return;
+//        }
+//
+//        rank.startRank();
+//    }
+//
 //    public void stopRank(RankType rankType) {
 //        Rank rank = getRank(rankType);
 //        if (rank == null) {
@@ -63,6 +108,15 @@
 //        }
 //
 //        rank.stopRank();
+//    }
+//
+//    public boolean isStopped(RankType rankType) {
+//        Rank rank = getRank(rankType);
+//        if (rank == null) {
+//            return false;
+//        }
+//
+//        return rank.isStopped();
 //    }
 //
 //    public void clearRank(RankType rankType) {

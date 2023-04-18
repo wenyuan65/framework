@@ -271,8 +271,16 @@ public class Rank {
         this.comparator = comparator;
     }
 
+    public void startRank() {
+        stopped = false;
+    }
+
     public void stopRank() {
         stopped = true;
+    }
+
+    public boolean isStopped() {
+        return stopped;
     }
 
     public void clearRank() {
