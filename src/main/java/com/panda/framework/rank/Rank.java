@@ -263,6 +263,7 @@ public class Rank {
 
         int rankInRange = (int)Math.round(1.0 * (scoreRange + range - score) / range * rankData.size());
         rankInRange = Math.min(rankInRange, rankData.size());
+        rankInRange = Math.max(rankInRange, 1);
 
         return this.count + rankInBeforeRange + rankInRange;
     }
