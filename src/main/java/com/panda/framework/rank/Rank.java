@@ -2,8 +2,12 @@ package com.panda.framework.rank;
 
 import com.panda.framework.log.Logger;
 import com.panda.framework.log.LoggerFactory;
+import com.panda.framework.rank.impl.InexactRank;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class Rank {
 
@@ -20,8 +24,8 @@ public class Rank {
     private Comparator<RankData> comparator = new RankDataComparator();
     /** 精确统计队列 */
     private List<RankData> rankList;
-    /** 分段存储排行数据 */
-    private TreeMap<Long, List<RankData>> rankMap = new TreeMap<>();
+    /** 未显示在排行榜上的数据管理器 */
+    private RankBelow rankBelow;
 
     public Rank() {
     }
@@ -49,6 +53,10 @@ public class Rank {
                 addRank(rankData);
             }
         }
+
+        // 初始化排行榜之后的数据管理器
+//        rankBelow = new ExactRank(this.comparator, this.range);
+        rankBelow = new InexactRank(this.comparator, this.range);
     }
 
     /**
@@ -86,7 +94,8 @@ public class Rank {
             int index = Collections.binarySearch(rankList, data, this.comparator);
             return index < 0 ? -1 : index + 1;
         } else if (cmp > 0) {
-            return calcRankInTreeMap(data);
+            int rank = rankBelow.queryRank(data);
+            return rank > 0 ? this.count + rank : rank;
         } else {
             return rankList.size();
         }
@@ -114,7 +123,7 @@ public class Rank {
             addRankList(data);
             return true;
         } else if (cmp > 0) {
-            addInexactRankMap(data);
+            rankBelow.addRankData(data);
             return false;
         }
         return false;
@@ -130,9 +139,6 @@ public class Rank {
         if (oldData == null) {
             return addRank(newData);
         }
-        if (newData.getScore() == oldData.getScore()) {
-            return false;
-        }
 
         RankData lastData = rankList.get(rankList.size() - 1);
         int cmp1 = this.comparator.compare(oldData, lastData);
@@ -141,17 +147,19 @@ public class Rank {
         if (cmp1 <= 0) {
             removeRankList(oldData);
         } else {
-            removeInexactRankMap(oldData);
+            rankBelow.removeRankData(oldData);
         }
         if (cmp2 <= 0) {
             addRankList(newData);
         } else {
-            addInexactRankMap(newData);
+            rankBelow.addRankData(newData);
 
-            // 精确排行榜上少人
+            // 精确排行榜上少人,从排行榜之外的数据中取出最高分的人
             if (rankList.size() < count) {
-                RankData rankData = pollHighestDataFromInexactRankMap();
-                addRankList(rankData);
+                RankData rankData = rankBelow.removeFirstRankData();
+                if (rankData != null) {
+                    addRankList(rankData);
+                }
             }
         }
 
@@ -167,7 +175,7 @@ public class Rank {
 
             if (rankList.size() > count) {
                 RankData lastData = rankList.remove(rankList.size() - 1);
-                addInexactRankMap(lastData);
+                rankBelow.addRankData(lastData);
             }
         } else {
             logger.error("向rankList中添加数据时，找到数据重复, {}, {}, {}", data.getPlayerId(), data.getScore(), index);
@@ -183,91 +191,10 @@ public class Rank {
         }
     }
 
-    private void addInexactRankMap(RankData data) {
-        long score = data.getScore();
-        long scoreRange = (score / range) * range;
-
-        List<RankData> dataList = rankMap.get(scoreRange);
-        if (dataList == null) {
-            dataList = new ArrayList<>();
-            rankMap.put(scoreRange, dataList);
-        }
-
-        dataList.add(data);
-    }
-
-    private void removeInexactRankMap(RankData data) {
-        long score = data.getScore();
-        long scoreRange = (score / range) * range;
-
-        List<RankData> dataList = rankMap.get(scoreRange);
-        if (dataList == null) {
-            logger.error("删除rankMap中的数据时，未找到列表, {}, {}, {}", data.getPlayerId(), data.getScore(), scoreRange);
-            return;
-        }
-        dataList.removeIf(t -> t.getPlayerId() == data.getPlayerId());
-
-        if (dataList.size() == 0) {
-            rankMap.remove(scoreRange);
-        }
-    }
-
     /**
-     * 找出非精确排行榜中最靠前的数据
-     * @return
+     * 如果需要设置新的比较器，必须在init()方法执行前完成
+     * @param comparator
      */
-    private RankData pollHighestDataFromInexactRankMap() {
-        Map.Entry<Long, List<RankData>> entry = rankMap.lastEntry();
-        List<RankData> list = entry.getValue();
-        if (list.size() <= 0) {
-            logger.error("弹出rankMap中排名最靠前的数据时，未找到, {}", entry.getKey());
-            return null;
-        }
-
-        RankData highestRankData = list.get(0);
-        for (int i = 1; i < list.size(); i++) {
-            int cmp = this.comparator.compare(list.get(i), highestRankData);
-            if (cmp < 0) {
-                highestRankData = list.get(i);
-            }
-        }
-        if (highestRankData == null) {
-            return null;
-        }
-        removeInexactRankMap(highestRankData);
-
-        return highestRankData;
-    }
-
-    /**
-     * 计算非精确的排行名次, 不在列表中会返回-1
-     * @param data
-     * @return
-     */
-    private int calcRankInTreeMap(RankData data) {
-        long score = data.getScore();
-        long scoreRange = (score / range) * range;
-        List<RankData> rankData = rankMap.get(scoreRange);
-
-        if (rankData == null) {
-            return -1;
-        }
-
-        // 类似于1000~1100, 900~1000, 800~900,....
-        int rankInBeforeRange = 0;
-        Map.Entry<Long, List<RankData>> entry = rankMap.lastEntry();
-        while (entry != null && entry.getKey() > scoreRange) {
-            rankInBeforeRange += entry.getValue().size();
-            entry = rankMap.lowerEntry(entry.getKey());
-        }
-
-        int rankInRange = (int)Math.round(1.0 * (scoreRange + range - score) / range * rankData.size());
-        rankInRange = Math.min(rankInRange, rankData.size());
-        rankInRange = Math.max(rankInRange, 1);
-
-        return this.count + rankInBeforeRange + rankInRange;
-    }
-
     public void setComparator(Comparator<RankData> comparator) {
         this.comparator = comparator;
     }
@@ -286,7 +213,8 @@ public class Rank {
 
     public void clearRank() {
         rankList.clear();
-        rankMap.clear();
+
+        rankBelow.clear();
     }
 
 }
